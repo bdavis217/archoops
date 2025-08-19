@@ -398,4 +398,108 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
       });
     }
   });
+
+  // Get current user's stats summary
+  fastify.get('/predictions/my-stats', {
+    preHandler: fastify.ensureAuth()
+  }, async (request, reply) => {
+    try {
+      const userId = request.user.userId;
+
+      // Get all user's predictions
+      const predictions = await prisma.prediction.findMany({
+        where: { userId },
+        include: {
+          game: true,
+        },
+      });
+
+      const totalPredictions = predictions.length;
+      const correctPredictions = predictions.filter(p => p.accuracyScore && p.accuracyScore > 50).length;
+      const totalPoints = predictions.reduce((sum, p) => sum + (p.pointsEarned || 0), 0);
+      const accuracyPercentage = totalPredictions > 0 ? (correctPredictions / totalPredictions) * 100 : 0;
+
+      // Calculate current streak
+      let currentStreak = 0;
+      const sortedPredictions = predictions
+        .filter(p => p.game.status === 'COMPLETED' && p.accuracyScore !== null)
+        .sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
+
+      for (const prediction of sortedPredictions) {
+        if (prediction.accuracyScore && prediction.accuracyScore > 50) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+
+      // Get user's rank across all their classes (simplified - just get average rank)
+      const enrollments = await prisma.enrollment.findMany({
+        where: { userId },
+        include: {
+          class: {
+            include: {
+              enrollments: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      let totalRank = 0;
+      let classCount = 0;
+
+      for (const enrollment of enrollments) {
+        // Calculate leaderboard for this class
+        const classLeaderboardEntries = await Promise.all(
+          enrollment.class.enrollments.map(async (classEnrollment) => {
+            const classPredictions = await prisma.prediction.findMany({
+              where: { userId: classEnrollment.userId },
+              include: {
+                game: true,
+              },
+            });
+
+            const classTotal = classPredictions.reduce((sum, p) => sum + (p.pointsEarned || 0), 0);
+            return {
+              userId: classEnrollment.userId,
+              totalPoints: classTotal,
+            };
+          })
+        );
+
+        // Sort by points and find user's rank
+        classLeaderboardEntries.sort((a, b) => b.totalPoints - a.totalPoints);
+        const userRankInClass = classLeaderboardEntries.findIndex(entry => entry.userId === userId) + 1;
+        
+        if (userRankInClass > 0) {
+          totalRank += userRankInClass;
+          classCount++;
+        }
+      }
+
+      const averageRank = classCount > 0 ? Math.round(totalRank / classCount) : null;
+
+      const stats = {
+        totalPoints,
+        totalPredictions,
+        correctPredictions,
+        accuracyPercentage: Math.round(accuracyPercentage * 100) / 100,
+        currentStreak,
+        averageRank,
+        classCount,
+      };
+
+      return reply.send(stats);
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.code(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to fetch user stats',
+      });
+    }
+  });
 }

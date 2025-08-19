@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { ClassCard } from '../components/ClassCard';
 import { JoinCodeInput } from '../components/JoinCodeInput';
+import { UserStats } from '../components/UserStats';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClassSummary, CreateClassInput, JoinClassInput } from '@archoops/types';
 
@@ -260,21 +261,29 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 opacity-60">
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className="group bg-gradient-to-br from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-md"
+            >
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">📊</span>
+                <div className="w-10 h-10 bg-amber-100 group-hover:bg-amber-200 rounded-lg flex items-center justify-center transition-colors">
+                  <span className="text-2xl">🏆</span>
                 </div>
-                <h3 className="font-semibold text-neutral-900">Analytics</h3>
+                <h3 className="font-semibold text-neutral-900">Leaderboard</h3>
               </div>
               <p className="text-sm text-neutral-600 mb-2">
-                Deep dive into basketball statistics and trends
+                See how you rank against your classmates
               </p>
-              <div className="text-xs text-green-600 font-medium">
-                Coming Soon
+              <div className="text-xs text-amber-600 font-medium">
+                View Rankings →
               </div>
-            </div>
+            </button>
           </div>
+        </div>
+
+        {/* User Stats Summary */}
+        <div className="mb-8">
+          <UserStats />
         </div>
 
         {/* Quick Stats Cards - Only for teachers */}

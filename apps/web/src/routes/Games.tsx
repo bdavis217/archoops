@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function Games() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'my-predictions' | 'leaderboard'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'my-predictions'>('upcoming');
 
   // Fetch user's predictions for My Predictions tab
   const { data: myPredictions, isLoading: predictionsLoading } = useQuery({
@@ -109,16 +109,6 @@ export default function Games() {
             >
               My Predictions
             </button>
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'leaderboard'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
-              }`}
-            >
-              Leaderboard
-            </button>
           </nav>
         </div>
 
@@ -191,19 +181,6 @@ export default function Games() {
                   ))}
                 </div>
               )}
-            </div>
-          )}
-          
-          {activeTab === 'leaderboard' && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🏆</div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Class Leaderboard</h3>
-              <p className="text-neutral-600 mb-4">
-                See how you rank against your classmates
-              </p>
-              <p className="text-sm text-neutral-500">
-                Coming soon! This feature is being built.
-              </p>
             </div>
           )}
         </div>

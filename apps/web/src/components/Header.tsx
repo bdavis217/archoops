@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserStats } from './UserStats';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -49,29 +50,46 @@ export function Header() {
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === '/dashboard' || location.pathname === '/'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => navigate('/games')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === '/games'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-              }`}
-            >
-              🏀 Games
-            </button>
-          </nav>
+          {/* Navigation Links & Stats */}
+          <div className="hidden md:flex items-center space-x-6">
+            <nav className="flex items-center space-x-1">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/dashboard' || location.pathname === '/'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/games')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/games'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                🏀 Games
+              </button>
+              <button
+                onClick={() => navigate('/leaderboard')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/leaderboard'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                🏆 Leaderboard
+              </button>
+            </nav>
+            
+            {/* User Stats */}
+            <div className="border-l border-neutral-200 pl-6">
+              <UserStats compact={true} />
+            </div>
+          </div>
 
           {/* User Menu */}
           <div className="relative">
