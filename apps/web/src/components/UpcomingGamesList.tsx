@@ -78,6 +78,24 @@ export function UpcomingGamesList() {
     },
   });
 
+  // Delete prediction mutation
+  const deletePredictionMutation = useMutation({
+    mutationFn: async (predictionId: string) => {
+      const response = await fetch(`/api/predictions/${predictionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete prediction');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['predictions'] });
+      queryClient.invalidateQueries({ queryKey: ['games'] });
+    },
+  });
+
   const handlePredict = async (gameId: string) => {
     // Fetch full game details
     try {
@@ -95,6 +113,18 @@ export function UpcomingGamesList() {
       setShowPredictionForm(true);
     } catch (error) {
       console.error('Error fetching game:', error);
+    }
+  };
+
+  const handleRemovePrediction = async (gameId: string) => {
+    const existingPrediction = getUserPredictionForGame(gameId);
+    if (existingPrediction && window.confirm('Are you sure you want to remove your prediction for this game?')) {
+      try {
+        await deletePredictionMutation.mutateAsync(existingPrediction.id);
+      } catch (error) {
+        console.error('Error removing prediction:', error);
+        alert('Failed to remove prediction. Please try again.');
+      }
     }
   };
 
@@ -208,6 +238,7 @@ export function UpcomingGamesList() {
                   key={game.id}
                   game={game}
                   onPredict={handlePredict}
+                  onRemovePrediction={handleRemovePrediction}
                   hasPrediction={!!getUserPredictionForGame(game.id)}
                   predictionStatus={getPredictionStatus(game.id, game.status)}
                 />

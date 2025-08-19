@@ -4,11 +4,12 @@ import { GameSummary } from '@archoops/types';
 interface GameCardProps {
   game: GameSummary;
   onPredict?: (gameId: string) => void;
+  onRemovePrediction?: (gameId: string) => void;
   hasPrediction?: boolean;
   predictionStatus?: 'pending' | 'correct' | 'incorrect';
 }
 
-export function GameCard({ game, onPredict, hasPrediction, predictionStatus }: GameCardProps) {
+export function GameCard({ game, onPredict, onRemovePrediction, hasPrediction, predictionStatus }: GameCardProps) {
   const gameDate = new Date(game.gameDate);
   const isLive = game.status === 'LIVE';
   const isCompleted = game.status === 'COMPLETED';
@@ -120,12 +121,22 @@ export function GameCard({ game, onPredict, hasPrediction, predictionStatus }: G
         )}
 
         {hasPrediction && isScheduled && (
-          <button
-            onClick={() => onPredict && onPredict(game.id)}
-            className="w-full py-2.5 px-4 bg-neutral-100 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-200 transition-colors"
-          >
-            Update Prediction
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => onPredict && onPredict(game.id)}
+              className="w-full py-2.5 px-4 bg-neutral-100 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-200 transition-colors"
+            >
+              Update Prediction
+            </button>
+            {onRemovePrediction && (
+              <button
+                onClick={() => onRemovePrediction(game.id)}
+                className="w-full py-2 px-4 text-red-600 text-sm font-medium hover:bg-red-50 rounded-lg transition-colors"
+              >
+                Remove Prediction
+              </button>
+            )}
+          </div>
         )}
 
         {(isLive || isCompleted) && !onPredict && (
