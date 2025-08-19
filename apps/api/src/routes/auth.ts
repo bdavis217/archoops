@@ -64,7 +64,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       // Sign JWT and set cookie
       const token = fastify.jwt.sign({ 
         userId: user.id, 
-        role: user.role 
+        role: user.role as 'teacher' | 'student' 
       });
 
       reply.setCookie('ah_session', token, {
@@ -80,7 +80,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role,
+        role: user.role as 'teacher' | 'student',
       });
 
       return reply.code(201).send({ user: publicUser });
@@ -124,7 +124,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       // Sign JWT and set cookie
       const token = fastify.jwt.sign({ 
         userId: user.id, 
-        role: user.role 
+        role: user.role as 'teacher' | 'student' 
       });
 
       reply.setCookie('ah_session', token, {
@@ -140,7 +140,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role,
+        role: user.role as 'teacher' | 'student',
       });
 
       return reply.send({ user: publicUser });
@@ -218,7 +218,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role,
+        role: user.role as 'teacher' | 'student',
       });
 
       return reply.send(publicUser);

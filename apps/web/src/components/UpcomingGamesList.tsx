@@ -6,6 +6,7 @@ import { PredictionForm } from './PredictionForm';
 
 export function UpcomingGamesList() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedPrediction, setSelectedPrediction] = useState<any | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const queryClient = useQueryClient();
 
@@ -33,25 +34,47 @@ export function UpcomingGamesList() {
     },
   });
 
-  // Create prediction mutation
+  // Create/Update prediction mutation
   const createPredictionMutation = useMutation({
-    mutationFn: async (prediction: CreatePrediction) => {
-      const response = await fetch('/api/predictions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(prediction),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create prediction');
+    mutationFn: async ({ prediction, existingPredictionId }: { prediction: CreatePrediction, existingPredictionId?: string }) => {
+      if (existingPredictionId) {
+        // Update existing prediction
+        console.log('Updating prediction with ID:', existingPredictionId);
+        console.log('Update payload:', JSON.stringify(prediction, null, 2));
+        const response = await fetch(`/api/predictions/${existingPredictionId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(prediction),
+        });
+        console.log('Update response status:', response.status);
+        if (!response.ok) {
+          const error = await response.json();
+          console.log('Update error response:', error);
+          throw new Error(error.message || 'Failed to update prediction');
+        }
+        return response.json();
+      } else {
+        // Create new prediction
+        const response = await fetch('/api/predictions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(prediction),
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to create prediction');
+        }
+        return response.json();
       }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['predictions'] });
+      queryClient.invalidateQueries({ queryKey: ['games'] });
       setShowPredictionForm(false);
       setSelectedGame(null);
+      setSelectedPrediction(null);
     },
   });
 
@@ -64,6 +87,11 @@ export function UpcomingGamesList() {
       }
       const game: Game = await response.json();
       setSelectedGame(game);
+      
+      // Check if user has existing prediction for this game
+      const existingPrediction = getUserPredictionForGame(gameId);
+      setSelectedPrediction(existingPrediction || null);
+      
       setShowPredictionForm(true);
     } catch (error) {
       console.error('Error fetching game:', error);
@@ -71,7 +99,10 @@ export function UpcomingGamesList() {
   };
 
   const handleSubmitPrediction = async (prediction: CreatePrediction) => {
-    await createPredictionMutation.mutateAsync(prediction);
+    await createPredictionMutation.mutateAsync({ 
+      prediction, 
+      existingPredictionId: selectedPrediction?.id 
+    });
   };
 
   const getUserPredictionForGame = (gameId: string) => {
@@ -194,8 +225,17 @@ export function UpcomingGamesList() {
           onCancel={() => {
             setShowPredictionForm(false);
             setSelectedGame(null);
+            setSelectedPrediction(null);
           }}
           isLoading={createPredictionMutation.isPending}
+          existingPrediction={selectedPrediction ? {
+            gameId: selectedPrediction.gameId,
+            predictionType: selectedPrediction.predictionType,
+            predictedWinner: selectedPrediction.predictedWinner,
+            predictedHomeScore: selectedPrediction.predictedHomeScore,
+            predictedAwayScore: selectedPrediction.predictedAwayScore,
+          } : undefined}
+          isUpdate={!!selectedPrediction}
         />
       )}
     </div>

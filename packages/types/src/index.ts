@@ -25,14 +25,6 @@ export const ClassSchema = z.object({
 });
 export type Class = z.infer<typeof ClassSchema>;
 
-export const PredictionSchema = z.object({
-	id: z.string(),
-	userId: z.string(),
-	gameId: z.string(),
-	predictedWinnerTeamId: z.string(),
-	confidence: z.number().min(0).max(1),
-	createdAt: z.string().datetime().optional(),
-});
-export type Prediction = z.infer<typeof PredictionSchema>;
+// Legacy PredictionSchema removed - use the one from ./schemas/prediction.ts instead
 
 export type { z };

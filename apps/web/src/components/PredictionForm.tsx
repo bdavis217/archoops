@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Game, CreatePrediction, PredictionTypeSchema } from '@archoops/types';
 
 interface PredictionFormProps {
@@ -7,6 +7,7 @@ interface PredictionFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   existingPrediction?: CreatePrediction;
+  isUpdate?: boolean;
 }
 
 export function PredictionForm({ 
@@ -14,7 +15,8 @@ export function PredictionForm({
   onSubmit, 
   onCancel, 
   isLoading = false,
-  existingPrediction 
+  existingPrediction,
+  isUpdate = false
 }: PredictionFormProps) {
   const [predictionType, setPredictionType] = useState<'GAME_WINNER' | 'FINAL_SCORE'>(
     existingPrediction?.predictionType as any || 'GAME_WINNER'
@@ -28,7 +30,34 @@ export function PredictionForm({
   const [predictedAwayScore, setPredictedAwayScore] = useState<number>(
     existingPrediction?.predictedAwayScore || 0
   );
+
+  // Auto-select winner based on scores
+  React.useEffect(() => {
+    if (predictionType === 'FINAL_SCORE' && predictedHomeScore > 0 && predictedAwayScore > 0) {
+      if (predictedHomeScore > predictedAwayScore) {
+        setPredictedWinner(game.homeTeam.abbreviation);
+      } else if (predictedAwayScore > predictedHomeScore) {
+        setPredictedWinner(game.awayTeam.abbreviation);
+      }
+    }
+  }, [predictedHomeScore, predictedAwayScore, predictionType, game.homeTeam.abbreviation, game.awayTeam.abbreviation]);
   const [error, setError] = useState<string | null>(null);
+
+  // Update state when existingPrediction prop changes
+  useEffect(() => {
+    if (existingPrediction) {
+      setPredictionType(existingPrediction.predictionType as 'GAME_WINNER' | 'FINAL_SCORE');
+      setPredictedWinner(existingPrediction.predictedWinner || '');
+      setPredictedHomeScore(existingPrediction.predictedHomeScore || 0);
+      setPredictedAwayScore(existingPrediction.predictedAwayScore || 0);
+    } else {
+      // Reset to defaults for new prediction
+      setPredictionType('GAME_WINNER');
+      setPredictedWinner('');
+      setPredictedHomeScore(0);
+      setPredictedAwayScore(0);
+    }
+  }, [existingPrediction]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +65,7 @@ export function PredictionForm({
 
     try {
       const prediction: CreatePrediction = {
-        gameId: game.id,
+        ...(isUpdate ? {} : { gameId: game.id }), // Only include gameId for new predictions
         predictionType,
         ...(predictionType === 'GAME_WINNER' && { predictedWinner }),
         ...(predictionType === 'FINAL_SCORE' && { 
@@ -44,13 +73,9 @@ export function PredictionForm({
           predictedHomeScore,
           predictedAwayScore 
         }),
-      };
+      } as CreatePrediction;
 
-      // Debug logging
-      console.log('Submitting prediction:', prediction);
-      console.log('Prediction type:', predictionType);
-      console.log('Predicted winner:', predictedWinner);
-      console.log('Scores:', { home: predictedHomeScore, away: predictedAwayScore });
+
 
       // Validation
       if (predictionType === 'GAME_WINNER' && !predictedWinner) {
@@ -59,23 +84,27 @@ export function PredictionForm({
       }
 
       if (predictionType === 'FINAL_SCORE') {
-        if (!predictedWinner) {
-          setError('Please select a winner');
+        // Check for zero scores
+        if (predictedHomeScore === 0 || predictedAwayScore === 0) {
+          setError('Both teams must score at least 1 point');
           return;
         }
+        
+        // Check for negative scores
         if (predictedHomeScore < 0 || predictedAwayScore < 0) {
           setError('Scores cannot be negative');
           return;
         }
+        
+        // Check for ties
         if (predictedHomeScore === predictedAwayScore) {
-          setError('NBA games cannot end in a tie');
+          setError('NBA games cannot end in a tie - one team must win');
           return;
         }
-        // Validate winner matches higher score
-        const homeWins = predictedHomeScore > predictedAwayScore;
-        if ((homeWins && predictedWinner !== game.homeTeam.abbreviation) ||
-            (!homeWins && predictedWinner !== game.awayTeam.abbreviation)) {
-          setError('Winner must match the higher score');
+
+        // Winner validation (should be auto-selected, but just in case)
+        if (!predictedWinner) {
+          setError('Winner should be automatically selected based on scores');
           return;
         }
       }
@@ -192,16 +221,33 @@ export function PredictionForm({
           {/* Winner Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Who will win?
+              {predictionType === 'GAME_WINNER' ? 'Who will win?' : 'Winner (determined by score)'}
+              {predictionType === 'FINAL_SCORE' && predictedHomeScore > 0 && predictedAwayScore > 0 && (
+                <span className="ml-2 text-xs text-blue-600 font-normal">
+                  ✓ Auto-selected
+                </span>
+              )}
+              {predictionType === 'GAME_WINNER' && (
+                <span className="ml-2 text-xs text-gray-500">
+                  Current: {predictedWinner || 'None selected'}
+                </span>
+              )}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <button
+                            <button
                 type="button"
-                onClick={() => setPredictedWinner(game.awayTeam.abbreviation)}
+                onClick={() => {
+                  if (predictionType === 'GAME_WINNER') {
+                    setPredictedWinner(game.awayTeam.abbreviation);
+                  }
+                }}
+                disabled={predictionType === 'FINAL_SCORE'}
                 className={`p-4 rounded-lg border-2 transition-colors ${
                   predictedWinner === game.awayTeam.abbreviation
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-neutral-200 hover:border-neutral-300'
+                    : predictionType === 'FINAL_SCORE' 
+                      ? 'border-neutral-200 bg-neutral-50 cursor-not-allowed opacity-75'
+                      : 'border-neutral-200 hover:border-neutral-300'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -217,13 +263,20 @@ export function PredictionForm({
                   </div>
                 </div>
               </button>
-              <button
+                            <button
                 type="button"
-                onClick={() => setPredictedWinner(game.homeTeam.abbreviation)}
+                onClick={() => {
+                  if (predictionType === 'GAME_WINNER') {
+                    setPredictedWinner(game.homeTeam.abbreviation);
+                  }
+                }}
+                disabled={predictionType === 'FINAL_SCORE'}
                 className={`p-4 rounded-lg border-2 transition-colors ${
                   predictedWinner === game.homeTeam.abbreviation
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-neutral-200 hover:border-neutral-300'
+                    : predictionType === 'FINAL_SCORE' 
+                      ? 'border-neutral-200 bg-neutral-50 cursor-not-allowed opacity-75'
+                      : 'border-neutral-200 hover:border-neutral-300'
                 }`}
               >
                 <div className="flex items-center space-x-3">

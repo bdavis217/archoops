@@ -83,12 +83,26 @@ coding_standards:
     - "Keep components small and focused (single responsibility)"
     - "Use proper prop types and default props"
   
+  react_forms:
+    - "Use useEffect to update form state when props change (not just initial values)"
+    - "For update forms: pass isUpdate prop to distinguish create vs update behavior"
+    - "Conditional data structure: exclude fields for updates that belong in URL path"
+    - "Reset form state to defaults when switching from update to create mode"
+    - "Always validate that existing data populates correctly in update forms"
+  
   api_design:
     - "RESTful API design principles"
     - "Consistent error response format"
     - "Proper HTTP status codes"
     - "Input validation on all endpoints"
     - "Rate limiting for public endpoints"
+  
+  api_validation:
+    - "Use separate Zod schemas for Create vs Update operations"
+    - "Update schemas should omit fields that are in URL path (e.g., gameId)"
+    - "CreateSchema includes all required fields, UpdateSchema uses .partial()"
+    - "Frontend must match schema expectations: include gameId for POST, exclude for PUT"
+    - "Always check schema definitions before implementing CRUD operations"
 
 # File Naming Conventions
 naming_conventions:
@@ -213,6 +227,50 @@ workflow:
     refactor: code refactoring
     test: adding tests
     chore: maintenance tasks
+
+# Common Pitfalls & Debugging
+common_pitfalls:
+  crud_operations:
+    - "Validation Error 'Invalid data': Check if request body matches expected schema"
+    - "Update operations failing: Verify URL path parameters aren't duplicated in body"
+    - "Form not showing existing data: Use useEffect to update state when props change"
+    - "Always check packages/types/src/schemas/ for current validation requirements"
+  
+  debugging_strategies:
+    - "Add console.log for request payloads before API calls"
+    - "Check browser Network tab for actual HTTP request/response"
+    - "Verify Zod schema expectations vs frontend data structure"
+    - "Test create vs update operations separately to isolate issues"
+  
+  example_patterns:
+    prediction_updates: |
+      // WRONG - includes gameId in update request
+      const prediction = { gameId: game.id, predictionType, predictedWinner };
+      
+      // CORRECT - conditional inclusion based on operation type
+      const prediction = {
+        ...(isUpdate ? {} : { gameId: game.id }),
+        predictionType,
+        predictedWinner
+      };
+
+# Quick Reference - CRUD Operations
+crud_checklist:
+  before_implementing:
+    - "Check packages/types/src/schemas/ for Create vs Update schema differences"
+    - "Verify which fields are required vs optional for each operation"
+    - "Understand which fields belong in URL path vs request body"
+  
+  frontend_implementation:
+    - "Pass isUpdate prop to forms that handle both create and update"
+    - "Use conditional field inclusion: ...(isUpdate ? {} : { gameId })"
+    - "Implement useEffect to update form state when existingData prop changes"
+    - "Test both create and update flows thoroughly"
+  
+  api_implementation:
+    - "Use CreateSchema.partial().omit({ pathFields }) for UpdateSchema"
+    - "Validate request body against appropriate schema (Create vs Update)"
+    - "Ensure URL path parameters aren't duplicated in request body validation"
 
 # Documentation Requirements
 documentation:

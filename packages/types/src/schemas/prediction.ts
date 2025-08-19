@@ -31,8 +31,8 @@ export const PredictionSchema = z.object({
   playerStatPredictions: z.array(PlayerStatPredictionSchema).optional(),
   submittedAt: z.string().datetime(),
   isLocked: z.boolean(),
-  accuracyScore: z.number().min(0).max(100).optional(),
-  pointsEarned: z.number().optional(),
+  accuracyScore: z.number().min(0).max(100).nullable().optional(),
+  pointsEarned: z.number().nullable().optional(),
 });
 
 export type Prediction = z.infer<typeof PredictionSchema>;

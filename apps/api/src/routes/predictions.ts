@@ -62,8 +62,8 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
           gameId: data.gameId,
           predictionType: data.predictionType,
           predictedWinner: data.predictedWinner,
-          predictedHomeScore: data.predictedHomeScore,
-          predictedAwayScore: data.predictedAwayScore,
+          predictedHomeScore: data.predictedHomeScore || 0,
+          predictedAwayScore: data.predictedAwayScore || 0,
           playerStatPredictions: data.playerStatPredictions ? JSON.stringify(data.playerStatPredictions) : null,
           isLocked: false,
         },
@@ -215,7 +215,7 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
           playerStatPredictions: data.playerStatPredictions ? JSON.stringify(data.playerStatPredictions) : existingPrediction.playerStatPredictions,
         },
       });
-
+      
       const predictionResponse = PredictionSchema.parse({
         id: updatedPrediction.id,
         userId: updatedPrediction.userId,
@@ -230,7 +230,7 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
         accuracyScore: updatedPrediction.accuracyScore,
         pointsEarned: updatedPrediction.pointsEarned,
       });
-
+      
       return reply.send(predictionResponse);
     } catch (error) {
       if (error instanceof Error && 'issues' in error) {
