@@ -1,0 +1,22 @@
+feature: Teacher Admin Console
+owner: api+web
+user_story:
+  - "As a teacher, I can create and manage multiple classes and view per-class leaderboards."
+scope:
+  includes:
+    - Create class, view class list, delete class
+    - See roster; remove student; copy join code
+    - Per-class leaderboard link
+data_model_refs: [User, Class, Enrollment]
+api:
+  - { method: GET, path: /api/teacher/classes, auth: teacher }
+  - { method: POST, path: /api/classes, auth: teacher, body: { name: string } }
+  - { method: DELETE, path: /api/classes/:classId, auth: teacher }
+  - { method: GET, path: /api/classes/:classId/roster, auth: teacher }
+  - { method: POST, path: /api/classes/:classId/rotate-code, auth: teacher }
+ui:
+  pages: ["/teacher/classes/:classId"]
+  components:
+    - ClassList, CreateClassModal, RosterTable, CopyCodeButton
+acceptance_tests:
+  - "Teacher manages two classes… unique join codes… students can be enrolled in both"

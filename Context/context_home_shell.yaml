@@ -1,0 +1,17 @@
+feature: App Shell and Header
+owner: web-team
+description: "Header with avatar, username, and logout; responsive shell; basic navigation."
+scope:
+  - Authenticated layout with header avatar and user menu
+  - Sections: Learn, Practice, Compare
+  - Mobile and desktop side nav
+api: []
+ui:
+  components:
+    - AppHeader: shows displayName and avatar placeholder
+    - NavTabs: Learn | Practice | Compare
+    - ProtectedRoute wrapper
+a11y:
+  - "Header controls reachable by keyboard"
+tests:
+  - "Route guards redirect unauthenticated user to /login"

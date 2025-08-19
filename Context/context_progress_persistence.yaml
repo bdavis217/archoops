@@ -1,0 +1,13 @@
+feature: Save Progress
+owner: api
+description: "Central service to save and retrieve per-user progress for predictions and lessons."
+entities:
+  - Prediction is versioned; status=editable|locked|scored
+  - LessonProgress tracks completion
+api:
+  - { method: GET, path: /api/me/progress }
+retention:
+  days: ${DATA_RETENTION_DAYS}
+  purge_job: "nightly cron in API… deletes stale Predictions with no scoring and old sessions"
+tests:
+  - "Purge respects retention setting"

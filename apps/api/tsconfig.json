@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@archoops/types": ["../../packages/types/src"],
+      "@archoops/scoring": ["../../packages/scoring/src"],
+      "@archoops/nba-provider": ["../../packages/nba-provider/src"],
+      "@archoops/config": ["../../packages/config/src"]
+    }
+  },
+  "include": ["src"]
+}

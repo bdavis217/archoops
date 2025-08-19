@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  role         String   // "teacher" or "student"
+  resetToken   String?  // Password reset token
+  resetTokenExpires DateTime? // Token expiration
+  createdAt    DateTime @default(now())
+  enrollments  Enrollment[]
+  classes      Class[]  @relation("TeacherClasses")
+  predictions  Prediction[]
+  points       PointsTransaction[]
+  lessons      Lesson[] @relation("AuthorLessons")
+  lessonProgress LessonProgress[]
+}
+
+model Class {
+  id         String   @id @default(cuid())
+  name       String
+  teacher    User     @relation("TeacherClasses", fields: [teacherId], references: [id])
+  teacherId  String
+  joinCode   String   @unique
+  createdAt  DateTime @default(now())
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  userId   String
+  classId  String
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  class    Class    @relation(fields: [classId], references: [id])
+  
+  @@id([userId, classId])
+}
+
+model Team {
+  id            String @id @default(cuid())
+  abbreviation  String @unique
+  fullName      String
+  city          String
+  conference    String // "EASTERN" or "WESTERN"
+  division      String
+  primaryColor  String // Hex color
+  secondaryColor String // Hex color
+  logoUrl       String?
+  createdAt     DateTime @default(now())
+  
+  homeGames     Game[] @relation("HomeTeam")
+  awayGames     Game[] @relation("AwayTeam")
+}
+
+model Game {
+  id          String    @id @default(cuid())
+  externalId  String?   // NBA API ID for real games
+  homeTeam    Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  homeTeamId  String
+  awayTeam    Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  awayTeamId  String
+  gameDate    DateTime
+  season      String
+  gameWeek    Int?
+  status      String    // "SCHEDULED", "LIVE", "COMPLETED", "POSTPONED"
+  homeScore   Int?
+  awayScore   Int?
+  isFakeGame  Boolean   @default(false) // For practice games
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  predictions Prediction[]
+  gameStats   GameStat[]
+}
+
+model Prediction {
+  id                    String   @id @default(cuid())
+  user                  User     @relation(fields: [userId], references: [id])
+  userId                String
+  game                  Game     @relation(fields: [gameId], references: [id])
+  gameId                String
+  predictionType        String   // "GAME_WINNER", "FINAL_SCORE", "PLAYER_STAT"
+  predictedWinner       String?  // Team abbreviation
+  predictedHomeScore    Int?
+  predictedAwayScore    Int?
+  playerStatPredictions String?  // JSON string of player predictions
+  submittedAt           DateTime @default(now())
+  isLocked              Boolean  @default(false) // Game started
+  actualOutcome         String?  // JSON string filled after game ends
+  accuracyScore         Float?   // 0-100
+  pointsEarned          Int?
+  createdAt             DateTime @default(now())
+  
+  @@unique([userId, gameId]) // One prediction per user per game
+}
+
+model GameStat {
+  id               String @id @default(cuid())
+  game             Game   @relation(fields: [gameId], references: [id])
+  gameId           String
+  teamAbbreviation String
+  playerName       String?
+  statType         String // "points", "rebounds", "assists", "3pm", etc.
+  statValue        Float
+  quarter          Int?   // 1-4, or null for game totals
+  createdAt        DateTime @default(now())
+}
+
+model PointsTransaction {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  author    User     @relation("AuthorLessons", fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+  progresses LessonProgress[]
+}
+
+model LessonProgress {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId  String
+  completed Boolean  @default(false)
+  progress  Int      @default(0) // percent 0..100
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}

@@ -1,0 +1,22 @@
+feature: Points… My Points Earned
+owner: api+web
+ledger_model:
+  PointsTransaction:
+    id: string
+    userId: string
+    gameId: string?         # null if bonus or lesson
+    predictionId: string?
+    points: integer
+    reason: enum[prediction, bonus, lesson]
+    breakdown: json         # {winner:100, diff:32, three:10}
+    createdAt: datetime
+api:
+  - { method: GET, path: /api/me/points/summary }
+  - { method: GET, path: /api/me/points?cursor= }
+  - { method: GET, path: /api/games/:gameId/my-points }
+ui:
+  components:
+    - PointsCounter in header
+    - PointsTable with expandable breakdown rows
+acceptance_tests:
+  - "New points badge appears until user opens details"

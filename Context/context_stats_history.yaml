@@ -1,0 +1,13 @@
+feature: Historical Game Stats Viewer
+owner: web+provider
+description: "Interactive chart of last 5 seasons… team 3PA, 3PM, pace, offensive rating, win%."
+api:
+  - { method: GET, path: /api/teams/:teamId/history?seasons=5 }
+provider_interface: NbaProvider.getHistoricalTeamStats
+ui:
+  components:
+    - TeamTrendsChart (Recharts)
+    - MetricSelector: [3PM, 3PA, Pace, ORtg, Win%]
+acceptance_tests:
+  - "Switching metric updates chart"
+  - "Handles empty data gracefully"

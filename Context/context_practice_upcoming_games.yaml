@@ -1,0 +1,20 @@
+feature: Practice — Upcoming Games
+owner: web+provider
+description: "Show schedule of upcoming games for next 10 days with location and tipoff time… lock prediction after start."
+api:
+  - { method: GET, path: /api/games/upcoming?days=10 }
+  - { method: GET, path: /api/games/:gameId/status }   # for lock and realtime
+provider_interface: NbaProvider.getUpcomingGames, getGameStatus
+ui:
+  components:
+    - UpcomingGameCard: { teams, date, time, venue, lockStatus }
+    - GameList with infinite scroll
+feature_flags:
+  LOCK_STARTED_GAMES: true
+  MOCK_DATA: true
+states:
+  - loading
+  - ready
+  - locked
+tests:
+  - "Game card shows Locked if status != 'scheduled'"

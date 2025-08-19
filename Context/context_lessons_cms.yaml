@@ -1,0 +1,30 @@
+feature: Learn — Interactive Video Lessons (upload first)
+owner: web+api
+notes: "Aspirational for celebrity players later… MVP supports teacher-uploaded videos with simple interactions."
+storage:
+  local_dir: uploads/lessons when LESSON_UPLOADS_LOCAL=true
+  future: S3 compatible bucket
+data_model:
+  Lesson:
+    id: string
+    title: string
+    description: string
+    videoUrl: string
+    interactions: json       # quiz checkpoints definition
+    createdBy: string -> User.id
+    createdAt: datetime
+  LessonProgress:
+    userId: string
+    lessonId: string
+    progress: number   # 0..1
+    lastCheckpoint: string|null
+api:
+  - { method: POST, path: /api/lessons, auth: teacher, body: { title, description, file } }
+  - { method: GET,  path: /api/lessons }
+  - { method: GET,  path: /api/lessons/:id }
+  - { method: POST, path: /api/lessons/:id/progress, auth: any, body: { progress, lastCheckpoint } }
+ui:
+  components:
+    - LessonCard, LessonPlayer, CheckpointOverlay
+acceptance_tests:
+  - "Upload small mp4 locally; student can play and save progress"

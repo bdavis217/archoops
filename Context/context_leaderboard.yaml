@@ -1,0 +1,16 @@
+feature: Leaderboards
+owner: api+web
+scopes: ["class", "global"]
+ranking:
+  primary: "total points"
+  tie_breakers: ["most correct winners", "closest differential average"]
+api:
+  - { method: GET, path: /api/leaderboard?scope=class&classId=:id }
+  - { method: GET, path: /api/leaderboard?scope=global }
+ui:
+  components:
+    - LeaderboardTable with rank change indicators
+    - ClassSelector for teachers
+acceptance_tests:
+  - "Student sees rank within each enrolled class"
+  - "Updates after scoring job runs"

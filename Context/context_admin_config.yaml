@@ -1,0 +1,13 @@
+feature: Admin Config and Feature Flags
+owner: api
+config_source: env + database overrides
+flags:
+  MOCK_DATA: boolean
+  REALTIME_SCORING: boolean
+  LOCK_STARTED_GAMES: boolean
+  UNLOCK_3PT_DEFAULT: boolean
+  ENABLE_EMAIL_VERIFICATION: boolean
+  DATA_RETENTION_DAYS: number
+api:
+  - { method: GET, path: /api/admin/flags, auth: teacher, note: "read-only for MVP" }
+docs: "packages/config exposes typed getters; web consumes /flags for client gating."

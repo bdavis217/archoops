@@ -1,0 +1,28 @@
+feature: Make Predictions for a Game
+owner: web+api
+metrics_supported_v1:
+  - winner: "home|away"
+  - pointDifferential: "integer… predicted home - away"
+  - team3PM:
+      home: integer
+      away: integer
+  - optional_totalPoints: integer
+rules:
+  - "One prediction per user per game; editable until game locks."
+  - "3-pointer metric unlocked by default."
+api:
+  - { method: GET,  path: /api/games/:gameId/prediction, auth: any }
+  - { method: POST, path: /api/games/:gameId/prediction, auth: any,
+      body_schema: PredictionInputZod }
+  - { method: GET,  path: /api/games/:gameId/lock-status }
+validation:
+  - "All integers bounded 0..400"
+ui:
+  components:
+    - PredictionForm: winner select, sliders for diff and 3PM
+    - SaveBar with error states
+acceptance_tests:
+  - "Cannot save after lock"
+  - "Updating before lock overwrites previous record"
+env:
+  UNLOCK_3PT_DEFAULT: true

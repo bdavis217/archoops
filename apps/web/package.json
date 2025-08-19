@@ -1,0 +1,34 @@
+{
+  "name": "@archoops/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.23.0",
+    "react-hook-form": "^7.51.3",
+    "@hookform/resolvers": "^3.3.4",
+    "@tanstack/react-query": "^5.29.2",
+    "zod": "^3.23.8",
+    "zxcvbn": "^4.4.2",
+    "@archoops/types": "workspace:*",
+    "@archoops/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.22",
+    "@types/zxcvbn": "^4.4.4",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0"
+  }
+}

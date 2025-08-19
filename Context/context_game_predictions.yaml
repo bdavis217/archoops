@@ -1,0 +1,345 @@
+# Game Predictions & Analytics Context
+# Core feature for making game predictions and analyzing basketball statistics
+
+feature_name: "Game Predictions & Analytics"
+priority: "Critical - MVP Core"
+dependencies: ["authentication", "mock_data_service"]
+
+# User Stories
+user_stories:
+  student:
+    - "As a student, I can view upcoming NBA games for the next 10 days"
+    - "As a student, I can make predictions on game winners and scores"
+    - "As a student, I can predict specific player statistics (3-pointers, rebounds, etc.)"
+    - "As a student, I can see historical game data and trends"
+    - "As a student, I can view my prediction accuracy and earn points"
+    - "As a student, I can practice with fake games during off-season"
+    - "As a student, I can analyze team and player performance metrics"
+  
+  teacher:
+    - "As a teacher, I can view student prediction performance across my classes"
+    - "As a teacher, I can create custom prediction challenges"
+    - "As a teacher, I can see which analytics concepts students are learning"
+
+# Database Schema
+database_models:
+  Game:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "externalId: String? (NBA API ID)"
+      - "homeTeam: String (Team abbreviation)"
+      - "awayTeam: String (Team abbreviation)"
+      - "gameDate: DateTime"
+      - "gameTime: String"
+      - "season: String"
+      - "gameWeek: Int"
+      - "status: Enum (SCHEDULED, LIVE, COMPLETED, POSTPONED)"
+      - "homeScore: Int?"
+      - "awayScore: Int?"
+      - "isFakeGame: Boolean (For practice)"
+      - "createdAt: DateTime"
+      - "updatedAt: DateTime"
+    relations:
+      - "predictions: Prediction[] (One-to-Many)"
+      - "gameStats: GameStat[] (One-to-Many)"
+  
+  Prediction:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "userId: String (Foreign Key)"
+      - "gameId: String (Foreign Key)"
+      - "predictionType: Enum (GAME_WINNER, FINAL_SCORE, PLAYER_STAT)"
+      - "predictedWinner: String? (Team abbreviation)"
+      - "predictedHomeScore: Int?"
+      - "predictedAwayScore: Int?"
+      - "playerStatPredictions: Json? (Array of player predictions)"
+      - "submittedAt: DateTime"
+      - "isLocked: Boolean (Game started)"
+      - "actualOutcome: Json? (Filled after game ends)"
+      - "accuracyScore: Float? (0-100)"
+      - "pointsEarned: Int?"
+    relations:
+      - "user: User (Many-to-One)"
+      - "game: Game (Many-to-One)"
+  
+  GameStat:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "gameId: String (Foreign Key)"
+      - "teamAbbreviation: String"
+      - "playerName: String?"
+      - "statType: String (points, rebounds, assists, 3pm, etc.)"
+      - "statValue: Float"
+      - "quarter: Int? (1-4, or null for game totals)"
+    relations:
+      - "game: Game (Many-to-One)"
+  
+  Team:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "abbreviation: String (Unique)"
+      - "fullName: String"
+      - "city: String"
+      - "conference: Enum (EASTERN, WESTERN)"
+      - "division: String"
+      - "primaryColor: String (Hex color)"
+      - "secondaryColor: String (Hex color)"
+      - "logoUrl: String?"
+    relations:
+      - "homeGames: Game[] (One-to-Many, homeTeam)"
+      - "awayGames: Game[] (One-to-Many, awayTeam)"
+
+# API Endpoints
+api_endpoints:
+  games:
+    - "GET /api/games/upcoming - Get upcoming games (next 10 days)"
+    - "GET /api/games/:id - Get specific game details"
+    - "GET /api/games/:id/stats - Get game statistics"
+    - "GET /api/games/historical - Get historical games for analysis"
+    - "POST /api/games/fake - Create fake practice game (admin)"
+  
+  predictions:
+    - "POST /api/predictions - Submit a prediction"
+    - "GET /api/predictions/user/:userId - Get user's predictions"
+    - "PUT /api/predictions/:id - Update prediction (before game starts)"
+    - "DELETE /api/predictions/:id - Delete prediction (before game starts)"
+    - "GET /api/predictions/leaderboard/:classId - Class leaderboard"
+  
+  teams:
+    - "GET /api/teams - Get all teams"
+    - "GET /api/teams/:abbreviation - Get team details"
+    - "GET /api/teams/:abbreviation/stats - Get team statistics"
+  
+  analytics:
+    - "GET /api/analytics/user/:userId - User prediction analytics"
+    - "GET /api/analytics/trends - Statistical trends and insights"
+    - "GET /api/analytics/player/:playerId - Player performance data"
+
+# Component Structure
+components:
+  pages:
+    - "GamesPredictionsPage.tsx"
+    - "GameDetailPage.tsx"
+    - "HistoricalAnalyticsPage.tsx"
+    - "LeaderboardPage.tsx"
+    - "MyPredictionsPage.tsx"
+  
+  game_components:
+    - "UpcomingGamesList.tsx"
+    - "GameCard.tsx"
+    - "GamePreview.tsx"
+    - "LiveGameTracker.tsx"
+    - "GameResultDisplay.tsx"
+  
+  prediction_components:
+    - "PredictionForm.tsx"
+    - "WinnerPrediction.tsx"
+    - "ScorePrediction.tsx"
+    - "PlayerStatPrediction.tsx"
+    - "PredictionSummary.tsx"
+    - "PredictionHistory.tsx"
+  
+  analytics_components:
+    - "TeamStatsChart.tsx"
+    - "PlayerPerformanceChart.tsx"
+    - "TrendAnalysisChart.tsx"
+    - "AccuracyMetrics.tsx"
+    - "StatisticalInsights.tsx"
+  
+  ui_components:
+    - "TeamLogo.tsx"
+    - "ScoreDisplay.tsx"
+    - "CountdownTimer.tsx"
+    - "ProgressBar.tsx"
+    - "StatCard.tsx"
+
+# Scoring Algorithm Service
+scoring_service:
+  location: "services/predictionScoring.ts"
+  purpose: "Isolated scoring logic for easy modification"
+  
+  algorithm_components:
+    winner_prediction:
+      - "Correct winner: 10 points"
+      - "Incorrect winner: 0 points"
+    
+    score_prediction:
+      - "Exact score: 50 points (rare bonus)"
+      - "Within 5 points: 25 points"
+      - "Within 10 points: 15 points"
+      - "Within 15 points: 10 points"
+      - "Beyond 15 points: 5 points (participation)"
+    
+    player_stats:
+      - "Exact stat: 30 points"
+      - "Within 1: 20 points"
+      - "Within 2: 15 points"
+      - "Within 3: 10 points"
+      - "Beyond 3: 5 points"
+    
+    multipliers:
+      - "Upset prediction (underdog wins): 2x multiplier"
+      - "Consecutive correct predictions: 1.1x multiplier per streak"
+      - "High-stakes games (playoffs): 1.5x multiplier"
+  
+  interface:
+    calculatePredictionScore: "(prediction: Prediction, actualResult: GameResult) => number"
+    calculateBonusPoints: "(prediction: Prediction, context: GameContext) => number"
+    getAccuracyPercentage: "(predictions: Prediction[]) => number"
+
+# Mock Data Service
+mock_data_service:
+  location: "services/mockDataService.ts"
+  purpose: "Simulate NBA API responses for development"
+  
+  data_generation:
+    teams:
+      - "30 NBA teams with realistic data"
+      - "Team statistics and standings"
+      - "Player rosters and stats"
+    
+    games:
+      - "Generate 82-game season schedule"
+      - "Realistic game times and dates"
+      - "Historical game results for 5 seasons"
+      - "Live game simulation with score updates"
+    
+    fake_games:
+      - "Off-season practice games"
+      - "Hypothetical matchups"
+      - "Adjustable difficulty levels"
+      - "Educational scenario games"
+  
+  api_compatibility:
+    - "Match NBA API response structure exactly"
+    - "Support same query parameters"
+    - "Identical error handling"
+    - "Configurable response delays"
+
+# Real-time Game Updates
+realtime_updates:
+  implementation: "Server-Sent Events (SSE) or WebSockets"
+  
+  update_frequency:
+    - "Live games: Every 30 seconds"
+    - "Game status changes: Immediate"
+    - "Score updates: Every score change"
+  
+  data_points:
+    - "Current score"
+    - "Game time remaining"
+    - "Quarter/period"
+    - "Key player statistics"
+    - "Game events (timeouts, fouls, etc.)"
+  
+  client_handling:
+    - "Automatic reconnection on disconnect"
+    - "Graceful degradation if updates fail"
+    - "Visual indicators for live games"
+    - "Sound notifications for major events"
+
+# Historical Analytics
+analytics_features:
+  team_analytics:
+    - "Win/loss trends over time"
+    - "Home vs. away performance"
+    - "Performance against different opponents"
+    - "Scoring trends and patterns"
+    - "Statistical correlations"
+  
+  player_analytics:
+    - "Individual player performance trends"
+    - "Shooting percentages and efficiency"
+    - "Clutch performance metrics"
+    - "Matchup-specific performance"
+  
+  prediction_analytics:
+    - "User accuracy over time"
+    - "Prediction confidence intervals"
+    - "Most/least predictable games"
+    - "Class performance comparisons"
+    - "Learning progress indicators"
+
+# Gamification Elements
+gamification:
+  points_system:
+    - "Base points for participation"
+    - "Accuracy bonuses"
+    - "Streak multipliers"
+    - "Challenge completions"
+  
+  achievements:
+    - "First prediction badge"
+    - "Perfect game prediction"
+    - "Week/month prediction champion"
+    - "Analytics explorer (view trends)"
+    - "Upset predictor (correct underdog picks)"
+  
+  leaderboards:
+    - "Class leaderboards"
+    - "Monthly competitions"
+    - "Accuracy-based rankings"
+    - "Most improved predictor"
+
+# Educational Integration
+educational_aspects:
+  data_science_concepts:
+    - "Statistical significance"
+    - "Correlation vs. causation"
+    - "Regression analysis basics"
+    - "Probability and odds"
+    - "Data visualization interpretation"
+  
+  interactive_lessons:
+    - "Understanding team statistics"
+    - "Player efficiency ratings"
+    - "Home court advantage analysis"
+    - "Clutch performance metrics"
+    - "Predicting outcomes with data"
+
+# Testing Strategy
+testing:
+  unit_tests:
+    - "Scoring algorithm accuracy"
+    - "Mock data generation"
+    - "Prediction validation logic"
+    - "Statistical calculations"
+  
+  integration_tests:
+    - "Game data fetching and processing"
+    - "Real-time update handling"
+    - "Prediction submission flow"
+    - "Leaderboard calculations"
+  
+  performance_tests:
+    - "Large dataset handling"
+    - "Real-time update performance"
+    - "Concurrent user predictions"
+    - "Historical data queries"
+
+# Error Handling
+error_scenarios:
+  - "API service unavailable"
+  - "Incomplete game data"
+  - "Prediction submission after game start"
+  - "Invalid statistical calculations"
+  - "Network connectivity during live updates"
+  - "Duplicate prediction attempts"
+
+# Performance Optimization
+performance:
+  - "Cache frequently accessed game data"
+  - "Paginate historical data queries"
+  - "Optimize chart rendering for large datasets"
+  - "Debounce real-time updates"
+  - "Lazy load non-critical statistics"
+  - "Use virtual scrolling for game lists"
+
+# Future Enhancements
+future_features:
+  - "Machine learning prediction suggestions"
+  - "Advanced statistical models"
+  - "Custom prediction categories"
+  - "Social prediction sharing"
+  - "Tournament-style competitions"
+  - "Integration with other sports"

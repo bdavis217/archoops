@@ -1,0 +1,259 @@
+
+# Authentication & User Management Context
+# Handles teacher and student authentication, registration, and profile management
+
+feature_name: "Authentication & User Management"
+priority: "Critical - MVP Core"
+dependencies: ["database_setup", "api_foundation"]
+
+# User Stories
+user_stories:
+  teacher:
+    - "As a teacher, I can create an account with my email and password"
+    - "As a teacher, I can log in to access my admin console"
+    - "As a teacher, I can create and manage multiple classes"
+    - "As a teacher, I can generate class codes for student registration"
+    - "As a teacher, I can view and manage student accounts in my classes"
+    - "As a teacher, I can reset student passwords"
+  
+  student:
+    - "As a student, I can create an account using a class code and email"
+    - "As a student, I can log in to access learning content"
+    - "As a student, I can join multiple classes"
+    - "As a student, I can view my profile and stats"
+    - "As a student, I can reset my password via email"
+
+# Database Schema
+database_models:
+  User:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "email: String (Unique)"
+      - "password: String (Hashed)"
+      - "role: Enum (TEACHER, STUDENT)"
+      - "firstName: String"
+      - "lastName: String"
+      - "profilePicture: String? (Optional)"
+      - "createdAt: DateTime"
+      - "updatedAt: DateTime"
+      - "lastLogin: DateTime?"
+    relations:
+      - "teacherClasses: Class[] (One-to-Many)"
+      - "studentEnrollments: Enrollment[] (One-to-Many)"
+      - "predictions: Prediction[] (One-to-Many)"
+      - "lessonProgress: LessonProgress[] (One-to-Many)"
+  
+  Class:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "name: String"
+      - "classCode: String (Unique, 6-digit)"
+      - "description: String?"
+      - "teacherId: String (Foreign Key)"
+      - "isActive: Boolean"
+      - "createdAt: DateTime"
+      - "updatedAt: DateTime"
+    relations:
+      - "teacher: User (Many-to-One)"
+      - "enrollments: Enrollment[] (One-to-Many)"
+  
+  Enrollment:
+    fields:
+      - "id: String (UUID, Primary Key)"
+      - "studentId: String (Foreign Key)"
+      - "classId: String (Foreign Key)"
+      - "enrolledAt: DateTime"
+      - "isActive: Boolean"
+    relations:
+      - "student: User (Many-to-One)"
+      - "class: Class (Many-to-One)"
+
+# API Endpoints
+api_endpoints:
+  auth:
+    - "POST /api/auth/register"
+    - "POST /api/auth/login"
+    - "POST /api/auth/logout"
+    - "POST /api/auth/refresh"
+    - "POST /api/auth/forgot-password"
+    - "POST /api/auth/reset-password"
+    - "GET /api/auth/me"
+  
+  classes:
+    - "POST /api/classes (Teacher only)"
+    - "GET /api/classes (User's classes)"
+    - "GET /api/classes/:id"
+    - "PUT /api/classes/:id (Teacher only)"
+    - "DELETE /api/classes/:id (Teacher only)"
+    - "POST /api/classes/:id/generate-code (Teacher only)"
+  
+  enrollments:
+    - "POST /api/enrollments/join (Student with class code)"
+    - "GET /api/classes/:id/students (Teacher only)"
+    - "DELETE /api/enrollments/:id (Teacher or Student)"
+
+# Component Structure
+components:
+  pages:
+    - "LoginPage.tsx"
+    - "RegisterPage.tsx"
+    - "ForgotPasswordPage.tsx"
+    - "ResetPasswordPage.tsx"
+    - "ProfilePage.tsx"
+    - "TeacherDashboard.tsx"
+    - "StudentDashboard.tsx"
+  
+  forms:
+    - "LoginForm.tsx"
+    - "TeacherRegistrationForm.tsx"
+    - "StudentRegistrationForm.tsx"
+    - "CreateClassForm.tsx"
+    - "JoinClassForm.tsx"
+    - "ProfileEditForm.tsx"
+  
+  components:
+    - "ProtectedRoute.tsx"
+    - "AuthGuard.tsx"
+    - "UserMenu.tsx"
+    - "ClassCard.tsx"
+    - "StudentList.tsx"
+    - "ClassCodeGenerator.tsx"
+
+# Context & Hooks
+react_context:
+  AuthContext:
+    state:
+      - "user: User | null"
+      - "isLoading: boolean"
+      - "isAuthenticated: boolean"
+    actions:
+      - "login(email, password)"
+      - "logout()"
+      - "register(userData)"
+      - "updateProfile(data)"
+      - "refreshToken()"
+  
+  custom_hooks:
+    - "useAuth() - Access auth context"
+    - "useAuthRedirect() - Handle login redirects"
+    - "useClassManagement() - Teacher class operations"
+    - "useEnrollment() - Student class joining"
+
+# Validation Schemas
+validation_schemas:
+  loginSchema:
+    - "email: string().email().required()"
+    - "password: string().min(6).required()"
+  
+  teacherRegistrationSchema:
+    - "email: string().email().required()"
+    - "password: string().min(8).regex(complex_password).required()"
+    - "firstName: string().min(2).required()"
+    - "lastName: string().min(2).required()"
+    - "confirmPassword: string().oneOf([password]).required()"
+  
+  studentRegistrationSchema:
+    - "email: string().email().required()"
+    - "password: string().min(6).required()"
+    - "firstName: string().min(2).required()"
+    - "lastName: string().min(2).required()"
+    - "classCode: string().length(6).required()"
+  
+  classCreationSchema:
+    - "name: string().min(3).max(50).required()"
+    - "description: string().max(200).optional()"
+
+# Security Considerations
+security:
+  password_requirements:
+    - "Minimum 8 characters for teachers"
+    - "Minimum 6 characters for students"
+    - "Must include uppercase, lowercase, number for teachers"
+  
+  jwt_configuration:
+    - "Access token: 15 minutes expiration"
+    - "Refresh token: 7 days expiration"
+    - "Secure HTTP-only cookies for refresh tokens"
+  
+  class_codes:
+    - "6-digit alphanumeric codes"
+    - "Expire after 30 days if not used"
+    - "Can be regenerated by teachers"
+    - "Case-insensitive input"
+
+# Business Logic
+business_rules:
+  registration:
+    - "Email addresses must be unique across all users"
+    - "Students must have a valid class code to register"
+    - "Teachers can create account without class code"
+    - "Email verification required for account activation"
+  
+  class_management:
+    - "Teachers can create unlimited classes"
+    - "Class codes are automatically generated"
+    - "Students can join multiple classes"
+    - "Teachers can remove students from their classes"
+    - "Inactive classes don't accept new enrollments"
+  
+  data_retention:
+    - "User accounts remain active until manually deactivated"
+    - "Deleted classes archive student data rather than delete"
+    - "Login attempts are rate limited (5 attempts per hour)"
+
+# Testing Strategy
+testing:
+  unit_tests:
+    - "Authentication hook functionality"
+    - "Password hashing and validation"
+    - "JWT token generation and verification"
+    - "Form validation schemas"
+    - "Class code generation uniqueness"
+  
+  integration_tests:
+    - "User registration flow (Teacher and Student)"
+    - "Login/logout flow"
+    - "Password reset flow"
+    - "Class creation and student enrollment"
+    - "Multi-class membership scenarios"
+  
+  e2e_tests:
+    - "Complete teacher onboarding journey"
+    - "Complete student onboarding journey"
+    - "Class management workflows"
+    - "Cross-browser authentication"
+
+# Error Handling
+error_scenarios:
+  - "Invalid credentials during login"
+  - "Email already exists during registration"
+  - "Invalid or expired class code"
+  - "Network connectivity issues"
+  - "Token expiration handling"
+  - "Password reset email delivery failures"
+  - "Class code collision (rare but possible)"
+
+# Performance Considerations
+performance:
+  - "Implement login rate limiting"
+  - "Cache user profile data locally"
+  - "Lazy load class enrollment data"
+  - "Optimize database queries with proper indexing"
+  - "Use connection pooling for database"
+
+# Accessibility Features
+accessibility:
+  - "Screen reader compatible forms"
+  - "Keyboard navigation for all auth flows"
+  - "High contrast mode support"
+  - "Form field labels and error announcements"
+  - "Loading state announcements"
+
+# Future Enhancements
+future_features:
+  - "OAuth integration (Google, Microsoft)"
+  - "Two-factor authentication"
+  - "Advanced role permissions"
+  - "Bulk student import via CSV"
+  - "Parent/guardian accounts"
+  - "SSO for school districts"

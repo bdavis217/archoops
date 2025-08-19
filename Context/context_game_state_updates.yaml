@@ -1,0 +1,14 @@
+feature: Realtime Game Status and Postgame Update
+owner: api+provider
+goal: "Realtime scoring during games… then finalize and post to leaderboards."
+flow:
+  - "Client subscribes via SSE /api/games/:gameId/stream for lock status and scoring deltas"
+  - "Provider emits periodic boxscore snapshots when REALTIME_SCORING=true"
+  - "On final status, run scoring job and persist points"
+api:
+  - { method: GET, path: /api/games/:gameId/stream }   # server-sent events
+  - { method: POST, path: /api/scoring/run-for-game/:gameId }  # internal
+flags:
+  REALTIME_SCORING: true
+acceptance_tests:
+  - "Client receives stream events… UI shows live accumulators"

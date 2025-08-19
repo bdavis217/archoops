@@ -1,0 +1,23 @@
+feature: Scoring Engine (pluggable)
+owner: scoring-package
+interface:
+  name: ScoringEngine
+  method: "score(prediction: Prediction, actual: GameResult) -> PointsBreakdown"
+LinearScoringV1:
+  winner:
+    correct: 100
+    incorrect: 0
+  pointDifferential:
+    formula: "max(0, 50 - abs(actualDiff - predictedDiff))"  # 0..50
+  team3PM:
+    formula: "for each team… max(0, 25 - abs(actual3pm - predicted3pm))"
+  total:
+    cap: 200
+  notes: "Pure function; no side effects."
+persistence_flow:
+  - "When a game status becomes 'final', API computes score for each prediction"
+  - "Create PointsTransaction rows"
+api:
+  - { method: POST, path: /api/scoring/run-for-game/:gameId, internal: true }
+tests:
+  - "Deterministic outputs for fixture pairs"

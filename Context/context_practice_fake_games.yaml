@@ -1,0 +1,19 @@
+feature: Practice — Fake Games Library
+owner: provider
+goal: "Keep students engaged in off-season… allow unlimited practice."
+approach:
+  generator:
+    seed: "classId + day-of-year"
+    knobs:
+      pace_range: [90, 104]
+      three_point_rate_range: [0.28, 0.45]
+      defense_strength: [0.8, 1.2]
+  dataset:
+    count_per_day: 6
+    teams: "fictional names and logos placeholder"
+api:
+  - { method: GET, path: /api/fake-games/upcoming }
+  - { method: GET, path: /api/fake-games/:id/boxscore }
+notes: "Lives entirely in MockNbaProvider; same shape as real games."
+acceptance_tests:
+  - "Predictions work identical to real games"

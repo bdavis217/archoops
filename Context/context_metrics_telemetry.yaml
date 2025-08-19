@@ -1,0 +1,12 @@
+feature: Basic Telemetry
+owner: platform
+events:
+  - page_view { path }
+  - prediction_saved { gameId }
+  - prediction_locked_attempt { gameId }
+  - lesson_started { lessonId }
+  - lesson_completed { lessonId }
+api:
+  - { method: POST, path: /api/metrics }
+storage: "lightweight table… batched inserts"
+privacy: "no emails in payload… use userId from auth only"

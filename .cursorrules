@@ -1,0 +1,233 @@
+# ArcHoops Development Rules
+# Empowering the next generation of diverse STEM leaders through sports analytics
+
+project_info:
+  name: "ArcHoops"
+  vision: "Empowering the next generation of diverse STEM leaders through sports analytics"
+  mission: "Transforming kids' enthusiasm for sports into a powerful tool for learning about data science"
+  version: "MVP 1.0"
+
+# Core Development Principles
+principles:
+  - "Cost-conscious development with easy scalability"
+  - "Mock-first approach with seamless API integration"
+  - "Mobile-first responsive design"
+  - "Modular, maintainable, and testable code"
+  - "Educational UX focused on middle school students"
+
+# Technology Stack
+tech_stack:
+  frontend:
+    framework: "React 18+"
+    styling: "Tailwind CSS"
+    state_management: "React Context + useReducer"
+    routing: "React Router v6"
+    forms: "React Hook Form + Zod validation"
+    ui_components: "Headless UI or Radix UI"
+    icons: "Lucide React"
+    charts: "Recharts or Chart.js"
+  
+  backend:
+    runtime: "Node.js with Express"
+    database: "SQLite (development) -> PostgreSQL (production)"
+    orm: "Prisma"
+    auth: "JWT with bcrypt"
+    file_upload: "Multer"
+    api_docs: "Swagger/OpenAPI"
+  
+  development:
+    package_manager: "npm"
+    linting: "ESLint + Prettier"
+    testing: "Jest + React Testing Library"
+    bundler: "Vite"
+
+# Project Structure
+project_structure: |
+  src/
+  ├── components/
+  │   ├── ui/                 # Reusable UI components
+  │   ├── forms/              # Form components
+  │   ├── layout/             # Layout components
+  │   └── features/           # Feature-specific components
+  ├── pages/                  # Route components
+  ├── hooks/                  # Custom React hooks
+  ├── services/              # API services and data fetching
+  ├── utils/                 # Utility functions
+  ├── types/                 # TypeScript type definitions
+  ├── contexts/              # React contexts
+  ├── constants/             # Application constants
+  └── assets/                # Static assets
+  
+  server/
+  ├── routes/                # API routes
+  ├── middleware/            # Express middleware
+  ├── models/               # Database models
+  ├── services/             # Business logic
+  ├── utils/                # Server utilities
+  ├── config/               # Configuration files
+  └── prisma/               # Database schema and migrations
+
+# Coding Standards
+coding_standards:
+  general:
+    - "Use TypeScript for type safety"
+    - "Follow functional programming patterns where possible"
+    - "Use semantic HTML and accessible components"
+    - "Implement proper error handling and loading states"
+    - "Write descriptive commit messages using conventional commits"
+  
+  react:
+    - "Use functional components with hooks"
+    - "Prefer custom hooks for reusable logic"
+    - "Use React.memo for performance optimization when needed"
+    - "Keep components small and focused (single responsibility)"
+    - "Use proper prop types and default props"
+  
+  api_design:
+    - "RESTful API design principles"
+    - "Consistent error response format"
+    - "Proper HTTP status codes"
+    - "Input validation on all endpoints"
+    - "Rate limiting for public endpoints"
+
+# File Naming Conventions
+naming_conventions:
+  components: "PascalCase (UserProfile.tsx)"
+  hooks: "camelCase starting with 'use' (useGamePrediction.ts)"
+  utilities: "camelCase (formatScore.ts)"
+  constants: "UPPER_SNAKE_CASE (API_ENDPOINTS.ts)"
+  types: "PascalCase with descriptive names (GamePrediction.ts)"
+
+# Data Management
+data_management:
+  mock_data:
+    - "Create realistic mock data that matches NBA API structure"
+    - "Use JSON files for static mock data"
+    - "Implement mock service layer that mimics real API responses"
+    - "Include data for different seasons and scenarios"
+  
+  api_integration:
+    - "Abstract API calls behind service layer"
+    - "Use environment variables for API configuration"
+    - "Implement retry logic and error handling"
+    - "Cache frequently accessed data appropriately"
+  
+  database:
+    - "Use Prisma for type-safe database operations"
+    - "Implement proper relations between entities"
+    - "Use database transactions for data integrity"
+    - "Plan for easy migration from SQLite to PostgreSQL"
+
+# Security Guidelines
+security:
+  - "Sanitize all user inputs"
+  - "Use HTTPS in production"
+  - "Implement proper CORS policies"
+  - "Store passwords using bcrypt"
+  - "Use JWT tokens with appropriate expiration"
+  - "Validate all API inputs with Zod schemas"
+  - "Implement rate limiting"
+
+# Performance Guidelines
+performance:
+  - "Lazy load routes and heavy components"
+  - "Optimize images and assets"
+  - "Use React.memo and useMemo appropriately"
+  - "Implement efficient data fetching patterns"
+  - "Use virtual scrolling for large lists"
+  - "Minimize bundle size with tree shaking"
+
+# Testing Strategy
+testing:
+  unit_tests:
+    - "Test utility functions and custom hooks"
+    - "Test component logic and user interactions"
+    - "Mock external dependencies"
+  
+  integration_tests:
+    - "Test API endpoints"
+    - "Test database operations"
+    - "Test authentication flows"
+  
+  e2e_tests:
+    - "Test critical user journeys"
+    - "Test responsive design on different devices"
+
+# Accessibility
+accessibility:
+  - "Use semantic HTML elements"
+  - "Implement proper ARIA labels"
+  - "Ensure keyboard navigation works"
+  - "Maintain proper color contrast ratios"
+  - "Test with screen readers"
+  - "Support reduced motion preferences"
+
+# Environment Configuration
+environments:
+  development:
+    database: "SQLite"
+    api_base_url: "http://localhost:3001"
+    log_level: "debug"
+  
+  production:
+    database: "PostgreSQL"
+    api_base_url: "TBD"
+    log_level: "error"
+
+# Key Features Implementation Notes
+implementation_notes:
+  authentication:
+    - "Implement role-based access control (Teacher/Student)"
+    - "Support multiple class memberships"
+    - "Email-based registration with verification"
+  
+  predictions:
+    - "Isolate scoring algorithm in dedicated service"
+    - "Support real-time game updates"
+    - "Implement leaderboard calculations"
+  
+  content_management:
+    - "Support video lesson uploads"
+    - "Implement lesson progress tracking"
+    - "Create interactive lesson components"
+  
+  gamification:
+    - "Point/coin system with configurable rules"
+    - "Achievement and badge system"
+    - "Social features for friendly competition"
+
+# Development Workflow
+workflow:
+  feature_development:
+    - "Create feature branch from main"
+    - "Implement feature with tests"
+    - "Update documentation"
+    - "Create pull request with description"
+    - "Code review and merge"
+  
+  commit_format: |
+    feat: add new feature
+    fix: bug fix
+    docs: documentation changes
+    style: formatting changes
+    refactor: code refactoring
+    test: adding tests
+    chore: maintenance tasks
+
+# Documentation Requirements
+documentation:
+  - "API documentation with Swagger"
+  - "Component documentation with Storybook"
+  - "README with setup instructions"
+  - "Architecture decision records (ADRs)"
+  - "User guide for teachers and students"
+
+# Deployment Strategy
+deployment:
+  current: "Local development"
+  future: "Cloud provider (Vercel/Netlify + Railway/Supabase)"
+  considerations:
+    - "Environment-based configuration"
+    - "Database migration strategy"
+    - "Asset optimization and CDN"
+    - "Monitoring and error tracking"
