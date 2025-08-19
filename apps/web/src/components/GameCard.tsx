@@ -113,7 +113,7 @@ export function GameCard({ game, onPredict, hasPrediction, predictionStatus }: G
         {onPredict && isScheduled && !hasPrediction && (
           <button
             onClick={() => onPredict(game.id)}
-            className="w-full py-2.5 px-4 bg-gradient-primary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+            className="w-full py-2.5 px-4 gradient-primary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
           >
             Make Prediction
           </button>

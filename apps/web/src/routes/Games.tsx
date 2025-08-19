@@ -2,10 +2,24 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/Header';
 import { UpcomingGamesList } from '../components/UpcomingGamesList';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Games() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'my-predictions' | 'leaderboard'>('upcoming');
+
+  // Fetch user's predictions for My Predictions tab
+  const { data: myPredictions, isLoading: predictionsLoading } = useQuery({
+    queryKey: ['predictions', 'my'],
+    queryFn: async () => {
+      const response = await fetch('/api/predictions/my', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch predictions');
+      }
+      return response.json();
+    },
+    enabled: !!user,
+  });
 
   if (!user) return null;
 
@@ -17,7 +31,7 @@ export default function Games() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-soft">
+            <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center shadow-soft">
               <svg 
                 className="w-7 h-7 text-white" 
                 fill="none" 
@@ -113,15 +127,70 @@ export default function Games() {
           {activeTab === 'upcoming' && <UpcomingGamesList />}
           
           {activeTab === 'my-predictions' && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📊</div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">My Predictions</h3>
-              <p className="text-neutral-600 mb-4">
-                Track your prediction history and accuracy
-              </p>
-              <p className="text-sm text-neutral-500">
-                Coming soon! This feature is being built.
-              </p>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-neutral-900">My Predictions</h2>
+                <div className="text-sm text-neutral-600">
+                  {myPredictions ? `${myPredictions.length} predictions` : 'Loading...'}
+                </div>
+              </div>
+
+              {predictionsLoading && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-neutral-600 mt-4">Loading predictions...</p>
+                </div>
+              )}
+
+              {!predictionsLoading && (!myPredictions || myPredictions.length === 0) && (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Predictions Yet</h3>
+                  <p className="text-neutral-600 mb-4">
+                    Make some predictions on upcoming games to see them here!
+                  </p>
+                </div>
+              )}
+
+              {!predictionsLoading && myPredictions && myPredictions.length > 0 && (
+                <div className="grid gap-4">
+                  {myPredictions.map((prediction: any) => (
+                    <div key={prediction.id} className="bg-white rounded-xl border border-neutral-200 p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-sm font-medium text-neutral-900">
+                            {prediction.game?.awayTeam?.abbreviation} @ {prediction.game?.homeTeam?.abbreviation}
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            {prediction.game?.gameDate ? new Date(prediction.game.gameDate).toLocaleDateString() : 'Unknown date'}
+                          </div>
+                        </div>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          prediction.game?.status === 'COMPLETED' 
+                            ? prediction.accuracyScore && prediction.accuracyScore > 50
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {prediction.game?.status === 'COMPLETED' 
+                            ? prediction.accuracyScore && prediction.accuracyScore > 50 ? 'Correct' : 'Incorrect'
+                            : 'Pending'}
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-neutral-600">
+                        <div><strong>Predicted Winner:</strong> {prediction.predictedWinner}</div>
+                        {prediction.predictionType === 'FINAL_SCORE' && (
+                          <div><strong>Predicted Score:</strong> {prediction.predictedAwayScore} - {prediction.predictedHomeScore}</div>
+                        )}
+                        {prediction.pointsEarned && (
+                          <div className="text-green-600 font-medium mt-1">+{prediction.pointsEarned} points</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           

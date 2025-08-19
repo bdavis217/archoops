@@ -2,6 +2,54 @@ import type { FastifyInstance } from 'fastify';
 import { prisma } from '../prisma.js';
 
 export default async function debugGameRoutes(fastify: FastifyInstance) {
+  // Debug predictions for a specific user
+  fastify.get('/debug/predictions', {
+    preHandler: fastify.ensureAuth()
+  }, async (request, reply) => {
+    try {
+      const userId = request.user.userId;
+      
+      // Get all predictions for this user
+      const predictions = await prisma.prediction.findMany({
+        where: { userId },
+        include: {
+          game: {
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+            },
+          },
+        },
+      });
+
+      return reply.send({
+        userId,
+        predictionCount: predictions.length,
+        predictions: predictions.map(p => ({
+          id: p.id,
+          gameId: p.gameId,
+          predictionType: p.predictionType,
+          predictedWinner: p.predictedWinner,
+          submittedAt: p.submittedAt,
+          game: {
+            id: p.game.id,
+            homeTeam: p.game.homeTeam.abbreviation,
+            awayTeam: p.game.awayTeam.abbreviation,
+            gameDate: p.game.gameDate,
+            status: p.game.status,
+          }
+        }))
+      });
+    } catch (error) {
+      fastify.log.error('Debug predictions error:', error);
+      return reply.code(500).send({
+        error: 'Internal Server Error',
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+  });
+
   // Simple debug endpoint without schema validation
   fastify.get('/debug/games', async (request, reply) => {
     try {

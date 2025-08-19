@@ -46,6 +46,12 @@ export function PredictionForm({
         }),
       };
 
+      // Debug logging
+      console.log('Submitting prediction:', prediction);
+      console.log('Prediction type:', predictionType);
+      console.log('Predicted winner:', predictedWinner);
+      console.log('Scores:', { home: predictedHomeScore, away: predictedAwayScore });
+
       // Validation
       if (predictionType === 'GAME_WINNER' && !predictedWinner) {
         setError('Please select a winner');
@@ -76,7 +82,14 @@ export function PredictionForm({
 
       await onSubmit(prediction);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit prediction');
+      console.error('Prediction submission error:', err);
+      if (err instanceof Error) {
+        console.error('Error message:', err.message);
+        setError(err.message);
+      } else {
+        console.error('Unknown error:', err);
+        setError('Failed to submit prediction');
+      }
     }
   };
 
@@ -282,7 +295,7 @@ export function PredictionForm({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 px-4 bg-gradient-primary text-white font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 py-2.5 px-4 gradient-primary text-white font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? 'Submitting...' : existingPrediction ? 'Update' : 'Submit'} Prediction

@@ -25,7 +25,7 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo Section */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-soft">
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-soft">
               <svg 
                 className="w-6 h-6 text-white" 
                 fill="none" 
