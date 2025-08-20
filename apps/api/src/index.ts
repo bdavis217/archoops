@@ -15,6 +15,7 @@ import classRoutes from './routes/classes.js';
 import gameRoutes from './routes/games.js';
 import predictionRoutes from './routes/predictions.js';
 import lessonRoutes from './routes/lessons.js';
+import pointsRoutes from './routes/points.js';
 import debugGameRoutes from './routes/debug-games.js';
 
 dotenv.config();
@@ -74,6 +75,7 @@ await server.register(async function (fastify) {
   await fastify.register(gameRoutes, { prefix: '/api' });
   await fastify.register(predictionRoutes, { prefix: '/api' });
   await fastify.register(lessonRoutes, { prefix: '/api' });
+  await fastify.register(pointsRoutes, { prefix: '/api' });
   await fastify.register(debugGameRoutes, { prefix: '/api' });
 });
 

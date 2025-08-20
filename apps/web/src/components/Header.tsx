@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserStats } from './UserStats';
+import { PointsCounter } from './PointsCounter';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -93,10 +94,33 @@ export function Header() {
               >
                 🏆 Leaderboard
               </button>
+              <button
+                onClick={() => navigate('/points')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/points'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                ⭐ Points
+              </button>
+              {user.role === 'teacher' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    location.pathname === '/admin'
+                      ? 'bg-red-100 text-red-700'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                  }`}
+                >
+                  ⚙️ Admin
+                </button>
+              )}
             </nav>
             
-            {/* User Stats */}
-            <div className="border-l border-neutral-200 pl-6">
+            {/* Points Counter & User Stats */}
+            <div className="flex items-center space-x-4 border-l border-neutral-200 pl-6">
+              <PointsCounter />
               <UserStats compact={true} />
             </div>
           </div>

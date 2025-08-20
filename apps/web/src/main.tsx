@@ -13,6 +13,8 @@ const Dashboard = React.lazy(() => import('./routes/Dashboard'));
 const Games = React.lazy(() => import('./routes/Games'));
 const Lessons = React.lazy(() => import('./routes/Lessons'));
 const Leaderboard = React.lazy(() => import('./routes/Leaderboard'));
+const Points = React.lazy(() => import('./routes/Points'));
+const Admin = React.lazy(() => import('./routes/Admin'));
 const ForgotPassword = React.lazy(() => import('./routes/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./routes/ResetPassword'));
 
@@ -88,6 +90,26 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <React.Suspense fallback={<LoadingScreen message="Loading leaderboard..." />}>
           <Leaderboard />
+        </React.Suspense>
+      </ProtectedRoute>
+    )
+  },
+  { 
+    path: '/points', 
+    element: (
+      <ProtectedRoute>
+        <React.Suspense fallback={<LoadingScreen message="Loading points..." />}>
+          <Points />
+        </React.Suspense>
+      </ProtectedRoute>
+    )
+  },
+  { 
+    path: '/admin', 
+    element: (
+      <ProtectedRoute>
+        <React.Suspense fallback={<LoadingScreen message="Loading admin..." />}>
+          <Admin />
         </React.Suspense>
       </ProtectedRoute>
     )

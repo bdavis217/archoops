@@ -236,11 +236,28 @@ common_pitfalls:
     - "Form not showing existing data: Use useEffect to update state when props change"
     - "Always check packages/types/src/schemas/ for current validation requirements"
   
+  fastify_schema_validation:
+    - "CRITICAL: Do NOT use Zod schemas directly in Fastify route schema definitions"
+    - "Error 'data/required must be array': Remove schema validation or convert to JSON Schema"
+    - "Fastify expects JSON Schema format, not Zod schemas in route.schema"
+    - "Use TypeScript type assertions instead: request.params as { id: string }"
+    - "Keep Zod for runtime validation in service layer, not route definitions"
+    - "Remove schema: { params: z.object({...}) } from route handlers"
+  
+  authentication_errors:
+    - "Cannot read properties of null (reading 'id'): Check request.user is populated"
+    - "Verify fastify.authenticate middleware is working correctly"
+    - "Ensure JWT token is being passed and decoded properly"
+    - "Check if user object exists before accessing properties: request.user?.id"
+    - "Add null checks in route handlers that depend on authenticated user"
+  
   debugging_strategies:
     - "Add console.log for request payloads before API calls"
     - "Check browser Network tab for actual HTTP request/response"
     - "Verify Zod schema expectations vs frontend data structure"
     - "Test create vs update operations separately to isolate issues"
+    - "Monitor API server logs for schema validation errors"
+    - "Use npm run dev to see detailed error messages during development"
   
   example_patterns:
     prediction_updates: |
@@ -253,6 +270,31 @@ common_pitfalls:
         predictionType,
         predictedWinner
       };
+
+# Server Startup & Runtime Issues
+server_troubleshooting:
+  schema_validation_errors:
+    - "FST_ERR_SCH_VALIDATION_BUILD: Remove Zod schemas from Fastify route definitions"
+    - "data/required must be array: Convert to JSON Schema or remove schema validation"
+    - "Check all route handlers for schema: { params/body/querystring } definitions"
+    - "Use type assertions instead: request.params as { gameId: string }"
+  
+  port_conflicts:
+    - "EADDRINUSE: Kill existing processes on port 3001/5173"
+    - "Use netstat -ano | findstr :3001 to find processes using ports"
+    - "Kill processes with taskkill /PID <pid> /F if needed"
+    - "Restart development servers in correct order: API first, then frontend"
+  
+  authentication_runtime_errors:
+    - "Cannot read properties of null (reading 'id'): Add request.user null checks"
+    - "Verify JWT middleware is registered before protected routes"
+    - "Check cookie parsing and JWT token extraction"
+    - "Use optional chaining: request.user?.id instead of request.user.id"
+  
+  database_connection:
+    - "Environment variable not found: DATABASE_URL: Set up .env file or env vars"
+    - "Prisma client not generated: Run npx prisma generate"
+    - "Database schema out of sync: Run npx prisma db push"
 
 # Quick Reference - CRUD Operations
 crud_checklist:
@@ -271,6 +313,9 @@ crud_checklist:
     - "Use CreateSchema.partial().omit({ pathFields }) for UpdateSchema"
     - "Validate request body against appropriate schema (Create vs Update)"
     - "Ensure URL path parameters aren't duplicated in request body validation"
+    - "NEVER use Zod schemas in Fastify route.schema - causes validation build errors"
+    - "Always add null checks for request.user before accessing properties"
+    - "Use TypeScript assertions: request.params as { id: string } instead of schema validation"
 
 # Documentation Requirements
 documentation:

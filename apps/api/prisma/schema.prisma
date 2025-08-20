@@ -115,12 +115,15 @@ model GameStat {
 }
 
 model PointsTransaction {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  amount    Int
-  reason    String
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  gameId       String?  // null for bonus or lesson points
+  predictionId String?  // reference to the prediction that earned points
+  points       Int      // points earned (positive) or spent (negative)
+  reason       String   // "prediction", "bonus", "lesson", "penalty"
+  breakdown    String?  // JSON string with detailed breakdown
+  createdAt    DateTime @default(now())
 }
 
 model Lesson {

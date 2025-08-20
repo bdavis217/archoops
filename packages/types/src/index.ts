@@ -6,6 +6,7 @@ export * from './schemas/class';
 export * from './schemas/game';
 export * from './schemas/prediction';
 export * from './schemas/lesson';
+export * from './schemas/points';
 
 // Legacy schemas (keeping for backward compatibility)
 export const UserSchema = z.object({
