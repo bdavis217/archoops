@@ -50,6 +50,9 @@ export default async function classRoutes(fastify: FastifyInstance) {
     try {
       const classes = await prisma.class.findMany({
         where: { teacherId: request.user.userId },
+        include: {
+          enrollments: true, // Include enrollments to count students
+        },
         orderBy: { createdAt: 'desc' },
       });
 
@@ -59,6 +62,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
           name: cls.name,
           joinCode: cls.joinCode,
           createdAt: cls.createdAt,
+          studentCount: cls.enrollments.length, // Add student count
         })
       );
 

@@ -15,6 +15,7 @@ export const ClassSummarySchema = z.object({
   name: z.string(),
   joinCode: z.string(),
   createdAt: z.date(),
+  studentCount: z.number().optional(), // For teacher views
 });
 
 export const ClassRosterSchema = z.object({

@@ -3,7 +3,10 @@ import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
+import staticFiles from '@fastify/static';
 import dotenv from 'dotenv';
+import path from 'path';
 
 // Import plugins and routes
 import authPlugin from './plugins/auth.js';
@@ -11,6 +14,7 @@ import authRoutes from './routes/auth.js';
 import classRoutes from './routes/classes.js';
 import gameRoutes from './routes/games.js';
 import predictionRoutes from './routes/predictions.js';
+import lessonRoutes from './routes/lessons.js';
 import debugGameRoutes from './routes/debug-games.js';
 
 dotenv.config();
@@ -36,6 +40,21 @@ await server.register(cors, {
 await server.register(sensible);
 await server.register(cookie);
 
+// Register multipart support for file uploads
+await server.register(multipart, {
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit for video files
+  }
+});
+
+// Register static file serving for uploads
+const uploadsPath = path.join(process.cwd(), 'uploads');
+console.log('Static files serving from:', uploadsPath);
+await server.register(staticFiles, {
+  root: uploadsPath,
+  prefix: '/uploads/',
+});
+
 // Register rate limiting
 await server.register(rateLimit, {
   max: 100,
@@ -54,6 +73,7 @@ await server.register(async function (fastify) {
   await fastify.register(classRoutes, { prefix: '/api' });
   await fastify.register(gameRoutes, { prefix: '/api' });
   await fastify.register(predictionRoutes, { prefix: '/api' });
+  await fastify.register(lessonRoutes, { prefix: '/api' });
   await fastify.register(debugGameRoutes, { prefix: '/api' });
 });
 
@@ -77,6 +97,7 @@ server
 		server.log.info('  GET  /api/me');
 	})
 	.catch((err) => {
+		console.error('Failed to start server:', err);
 		server.log.error('Failed to start server:', err);
 		process.exit(1);
 	});

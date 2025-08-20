@@ -246,9 +246,12 @@ export default function Dashboard() {
               </div>
             </button>
 
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6 opacity-60">
+            <button
+              onClick={() => navigate('/lessons')}
+              className="group bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-md"
+            >
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center transition-colors">
                   <span className="text-2xl">📚</span>
                 </div>
                 <h3 className="font-semibold text-neutral-900">Lessons</h3>
@@ -257,9 +260,9 @@ export default function Dashboard() {
                 Interactive video lessons on sports analytics
               </p>
               <div className="text-xs text-purple-600 font-medium">
-                Coming Soon
+                {user.role === 'teacher' ? 'Create Lessons' : 'Start Learning'} →
               </div>
-            </div>
+            </button>
 
             <button
               onClick={() => navigate('/leaderboard')}
