@@ -113,30 +113,25 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userRole = (request as any).user.role;
 
       if (userRole === 'teacher') {
-        // Teachers see all lessons they created
+        // Teachers see all lessons they created with progress data
         const lessons = await prisma.lesson.findMany({
           where: { authorId: userId },
           orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            videoUrl: true,
-            authorId: true,
-            createdAt: true,
+          include: {
+            progresses: {
+              select: {
+                completed: true,
+              }
+            }
           }
         });
 
-        const lessonSummaries = lessons.map(lesson => 
-          LessonSummarySchema.parse({
-            id: lesson.id,
-            title: lesson.title,
-            description: lesson.content,
-            videoUrl: lesson.videoUrl || null, // Convert empty string to null
-            createdBy: lesson.authorId,
-            createdAt: lesson.createdAt.toISOString(),
-          })
-        );
+        const lessonSummaries = lessons.map(lesson => ({
+          id: lesson.id,
+          title: lesson.title,
+          createdAt: lesson.createdAt.toISOString(),
+          progresses: lesson.progresses || []
+        }));
 
         return reply.send(lessonSummaries);
       } else {
