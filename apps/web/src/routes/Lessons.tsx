@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/Header';
 import { LessonCard } from '../components/LessonCard';
 import { LessonForm } from '../components/LessonForm';
-import { VideoUpload } from '../components/VideoUpload';
+
 import { LessonPlayer } from '../components/LessonPlayer';
 import { 
   LessonSummary, 
@@ -19,8 +19,8 @@ export default function Lessons() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingLesson, setEditingLesson] = useState<{ id: string; title: string; description: string } | null>(null);
-  const [uploadingVideo, setUploadingVideo] = useState<string | null>(null);
+  const [editingLesson, setEditingLesson] = useState<{ id: string; title: string; description: string; embedCode?: string } | null>(null);
+
   const [playingLesson, setPlayingLesson] = useState<LessonWithProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -58,11 +58,8 @@ export default function Lessons() {
     onSuccess: (newLesson) => {
       queryClient.invalidateQueries({ queryKey: ['lessons'] });
       setShowCreateForm(false);
-      setSuccess('Lesson created successfully! You can now upload a video.');
-      setTimeout(() => setSuccess(null), 5000);
-      
-      // Automatically open video upload for new lesson
-      setUploadingVideo(newLesson.id);
+      setSuccess('Lesson created successfully!');
+      setTimeout(() => setSuccess(null), 3000);
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -168,12 +165,7 @@ export default function Lessons() {
     }
   };
 
-  const handleVideoUploadComplete = (videoUrl: string) => {
-    setUploadingVideo(null);
-    queryClient.invalidateQueries({ queryKey: ['lessons'] });
-    setSuccess('Video uploaded successfully!');
-    setTimeout(() => setSuccess(null), 3000);
-  };
+
 
   const handleProgressUpdate = async (progress: UpdateLessonProgress) => {
     if (!playingLesson) return;
@@ -259,18 +251,23 @@ export default function Lessons() {
                   lesson={lesson}
                   isTeacher={isTeacher}
                   onView={handleViewLesson}
-                  onEdit={isTeacher ? (id) => {
-                    const lessonToEdit = lessons.find(l => l.id === id);
-                    if (lessonToEdit) {
+                  onEdit={isTeacher ? async (id) => {
+                    try {
+                      const response = await fetch(`/api/lessons/${id}`, { credentials: 'include' });
+                      if (!response.ok) throw new Error('Failed to fetch lesson');
+                      const lessonData = await response.json();
                       setEditingLesson({
-                        id: lessonToEdit.id,
-                        title: lessonToEdit.title,
-                        description: lessonToEdit.description,
+                        id: lessonData.id,
+                        title: lessonData.title,
+                        description: lessonData.description,
+                        embedCode: lessonData.embedCode,
                       });
+                    } catch (err) {
+                      setError('Failed to load lesson for editing');
                     }
                   } : undefined}
                   onDelete={isTeacher ? handleDeleteLesson : undefined}
-                  onUploadVideo={isTeacher ? (id) => setUploadingVideo(id) : undefined}
+                  onUploadVideo={undefined}
                 />
               </div>
             ))}
@@ -330,17 +327,7 @@ export default function Lessons() {
         />
       )}
 
-      {uploadingVideo && (
-        <VideoUpload
-          lessonId={uploadingVideo}
-          existingVideoUrl={(() => {
-            const lesson = lessons?.find(l => l.id === uploadingVideo);
-            return lesson?.videoUrl || undefined;
-          })()}
-          onUploadComplete={handleVideoUploadComplete}
-          onCancel={() => setUploadingVideo(null)}
-        />
-      )}
+
 
       {playingLesson && (
         <LessonPlayer

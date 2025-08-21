@@ -8,6 +8,7 @@ interface LessonFormProps {
   existingLesson?: {
     title: string;
     description: string;
+    embedCode?: string;
   };
   isUpdate?: boolean;
 }
@@ -21,6 +22,7 @@ export function LessonForm({
 }: LessonFormProps) {
   const [title, setTitle] = useState(existingLesson?.title || '');
   const [description, setDescription] = useState(existingLesson?.description || '');
+  const [embedCode, setEmbedCode] = useState(existingLesson?.embedCode || '');
   const [error, setError] = useState<string | null>(null);
 
   // Update form state when existingLesson prop changes
@@ -28,10 +30,12 @@ export function LessonForm({
     if (existingLesson) {
       setTitle(existingLesson.title);
       setDescription(existingLesson.description);
+      setEmbedCode(existingLesson.embedCode || '');
     } else {
       // Reset to defaults for new lesson
       setTitle('');
       setDescription('');
+      setEmbedCode('');
     }
   }, [existingLesson]);
 
@@ -50,6 +54,11 @@ export function LessonForm({
       return;
     }
 
+    if (!embedCode.trim()) {
+      setError('Embed code is required');
+      return;
+    }
+
     if (title.length > 200) {
       setError('Title must be less than 200 characters');
       return;
@@ -60,10 +69,28 @@ export function LessonForm({
       return;
     }
 
+    if (embedCode.length > 5000) {
+      setError('Embed code must be less than 5000 characters');
+      return;
+    }
+
+    // Validate that it's an iframe embed (no scripts allowed)
+    if (!embedCode.includes('<iframe')) {
+      setError('Please provide valid iframe embed code. Scripts are not allowed for security reasons.');
+      return;
+    }
+
+    // Check for script tags (security)
+    if (embedCode.toLowerCase().includes('<script')) {
+      setError('Script tags are not allowed for security reasons. Please use iframe embed code only.');
+      return;
+    }
+
     try {
       const lessonData = {
         title: title.trim(),
         description: description.trim(),
+        embedCode: embedCode.trim(),
       };
 
       await onSubmit(lessonData);
@@ -148,21 +175,38 @@ export function LessonForm({
               </p>
             </div>
 
-            {!isUpdate && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-blue-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p className="text-sm font-medium text-blue-800 mb-1">Next Step</p>
-                    <p className="text-sm text-blue-700">
-                      After creating the lesson, you'll be able to upload a video file and add interactive elements.
-                    </p>
-                  </div>
+            <div>
+              <label htmlFor="embedCode" className="block text-sm font-medium text-neutral-700 mb-2">
+                iFrame Embed Code *
+              </label>
+              <textarea
+                id="embedCode"
+                value={embedCode}
+                onChange={(e) => setEmbedCode(e.target.value)}
+                className="input min-h-[120px] resize-none font-mono text-sm"
+                placeholder="Paste your iframe embed code from Genially, YouTube, Vimeo, etc..."
+                required
+                maxLength={5000}
+                rows={6}
+              />
+              <p className="text-xs text-neutral-500 mt-1">
+                {embedCode.length}/5000 characters
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-blue-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-blue-800 mb-1">iFrame Embed Only</p>
+                  <p className="text-sm text-blue-700">
+                    For security reasons, only iframe embed codes are allowed. Copy the iframe code from platforms like Genially, YouTube, or Vimeo. Script tags are not permitted.
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
             
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-3">
               <button

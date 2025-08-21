@@ -130,7 +130,8 @@ model Lesson {
   id           String   @id @default(cuid())
   title        String
   content      String
-  videoUrl     String?
+  videoUrl     String?  // Legacy video file uploads
+  embedCode    String?  // iFrame embed code for external content
   interactions String?  // JSON string for quiz checkpoints
   author       User     @relation("AuthorLessons", fields: [authorId], references: [id])
   authorId     String

@@ -5,7 +5,8 @@ export const LessonSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
-  videoUrl: z.string().nullable(), // Can be relative path or null
+  videoUrl: z.string().nullable(), // Can be relative path or null (legacy video files)
+  embedCode: z.string().nullable().optional(), // iFrame embed code for external content
   interactions: z.record(z.any()).optional(), // JSON object for quiz checkpoints
   createdBy: z.string(), // User ID
   createdAt: z.string().datetime(),
@@ -15,6 +16,11 @@ export const LessonSchema = z.object({
 export const CreateLessonSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
   description: z.string().min(1, "Description is required").max(1000, "Description must be less than 1000 characters"),
+  embedCode: z.string()
+    .min(1, "Embed code is required")
+    .max(5000, "Embed code must be less than 5000 characters")
+    .refine((code) => code.includes('<iframe'), "Only iframe embed codes are allowed")
+    .refine((code) => !code.toLowerCase().includes('<script'), "Script tags are not allowed for security reasons"),
   interactions: z.record(z.any()).optional(),
 });
 
@@ -53,6 +59,7 @@ export const LessonSummarySchema = z.object({
   title: z.string(),
   description: z.string(),
   videoUrl: z.string().nullable().optional(), // For video status indication (can be relative path)
+  embedCode: z.string().nullable().optional(), // For embed content indication
   createdBy: z.string(),
   createdAt: z.string().datetime(),
   progress: z.number().min(0).max(1).optional(), // For student views

@@ -153,6 +153,7 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
             title: lesson.title,
             description: lesson.content,
             videoUrl: lesson.videoUrl || null, // Convert empty string to null
+            embedCode: lesson.embedCode || null,
             createdBy: lesson.authorId,
             createdAt: lesson.createdAt.toISOString(),
             progress: progress ? progress.progress / 100 : 0, // Convert from 0-100 to 0-1
@@ -203,7 +204,8 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
           id: lesson.id,
           title: lesson.title,
           description: lesson.content,
-          videoUrl: lesson.videoUrl || '',
+          videoUrl: lesson.videoUrl || null,
+          embedCode: lesson.embedCode || null,
           interactions: lesson.interactions ? JSON.parse(lesson.interactions) : undefined,
           createdBy: lesson.authorId,
           createdAt: lesson.createdAt.toISOString(),
@@ -226,7 +228,8 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
           id: lesson.id,
           title: lesson.title,
           description: lesson.content,
-          videoUrl: lesson.videoUrl || '',
+          videoUrl: lesson.videoUrl || null,
+          embedCode: lesson.embedCode || null,
           interactions: lesson.interactions ? JSON.parse(lesson.interactions) : undefined,
           createdBy: lesson.authorId,
           createdAt: lesson.createdAt.toISOString(),
@@ -265,7 +268,8 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         data: {
           title: data.title,
           content: data.description, // Store description in content field
-          videoUrl: '', // Will be updated when video is uploaded
+          embedCode: data.embedCode, // Store the embed code
+          videoUrl: null, // Legacy field for existing video lessons
           interactions: data.interactions ? JSON.stringify(data.interactions) : null,
           authorId: userId,
         },
@@ -275,7 +279,8 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         id: lesson.id,
         title: lesson.title,
         description: lesson.content,
-        videoUrl: lesson.videoUrl || '',
+        videoUrl: lesson.videoUrl || null,
+        embedCode: lesson.embedCode || null,
         interactions: lesson.interactions ? JSON.parse(lesson.interactions) : undefined,
         createdBy: lesson.authorId,
         createdAt: lesson.createdAt.toISOString(),
@@ -342,6 +347,7 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         data: {
           ...(data.title && { title: data.title }),
           ...(data.description && { content: data.description }),
+          ...(data.embedCode && { embedCode: data.embedCode }),
           ...(data.interactions && { interactions: JSON.stringify(data.interactions) }),
         },
       });
@@ -350,7 +356,8 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         id: lesson.id,
         title: lesson.title,
         description: lesson.content,
-        videoUrl: lesson.videoUrl || '',
+        videoUrl: lesson.videoUrl || null,
+        embedCode: lesson.embedCode || null,
         interactions: lesson.interactions ? JSON.parse(lesson.interactions) : undefined,
         createdBy: lesson.authorId,
         createdAt: lesson.createdAt.toISOString(),
@@ -410,9 +417,17 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         });
       }
 
-      await prisma.lesson.delete({
-        where: { id },
-      });
+      // Use a transaction to ensure both operations succeed or fail together
+      await prisma.$transaction([
+        // Delete all lesson progress records first
+        prisma.lessonProgress.deleteMany({
+          where: { lessonId: id },
+        }),
+        // Then delete the lesson
+        prisma.lesson.delete({
+          where: { id },
+        })
+      ]);
 
       return reply.code(204).send();
     } catch (error) {
