@@ -470,7 +470,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         message: 'Account deleted successfully'
       });
     } catch (error) {
-      fastify.log.error('Account deletion error:', error);
+      fastify.log.error({ error }, 'Account deletion error');
       return reply.code(500).send({
         error: 'Internal Server Error',
         message: 'Failed to delete account. Please try again.',
