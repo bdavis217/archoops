@@ -191,7 +191,7 @@ export function Header() {
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      // Add settings navigation here when implemented
+                      navigate('/settings');
                     }}
                     className="flex items-center w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-200"
                   >

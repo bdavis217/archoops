@@ -30,9 +30,6 @@ interface Lesson {
 
 export default function Profile() {
   const { user } = useAuth();
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Fetch profile stats for teachers
@@ -74,39 +71,7 @@ export default function Profile() {
     enabled: !!user && user.role === 'teacher',
   });
 
-  const handleUpdateDisplayName = async () => {
-    if (!displayName.trim() || displayName === user?.displayName) {
-      setIsEditingName(false);
-      setDisplayName(user?.displayName || '');
-      return;
-    }
 
-    setIsUpdatingName(true);
-    try {
-      const response = await fetch('/api/profile/update-name', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ displayName: displayName.trim() }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update display name');
-      }
-
-      // Refresh user data
-      window.location.reload(); // Simple refresh for now
-    } catch (error) {
-      console.error('Error updating display name:', error);
-      alert('Failed to update display name. Please try again.');
-      setDisplayName(user?.displayName || '');
-    } finally {
-      setIsUpdatingName(false);
-      setIsEditingName(false);
-    }
-  };
 
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
@@ -139,59 +104,7 @@ export default function Profile() {
             {/* User Info */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                {isEditingName ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="text-2xl font-bold text-neutral-900 bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleUpdateDisplayName();
-                        if (e.key === 'Escape') {
-                          setIsEditingName(false);
-                          setDisplayName(user.displayName);
-                        }
-                      }}
-                      disabled={isUpdatingName}
-                      autoFocus
-                    />
-                    <button
-                      onClick={handleUpdateDisplayName}
-                      disabled={isUpdatingName}
-                      className="p-1 text-success-600 hover:text-success-700 disabled:opacity-50"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsEditingName(false);
-                        setDisplayName(user.displayName);
-                      }}
-                      disabled={isUpdatingName}
-                      className="p-1 text-neutral-400 hover:text-neutral-600 disabled:opacity-50"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold text-neutral-900">{user.displayName}</h1>
-                    <button
-                      onClick={() => setIsEditingName(true)}
-                      className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
-                      title="Edit display name"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
+                <h1 className="text-2xl font-bold text-neutral-900">{user.displayName}</h1>
               </div>
               
               <div className="flex items-center gap-2 mb-3">
@@ -213,9 +126,13 @@ export default function Profile() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={() => setIsSettingsModalOpen(true)}
-                className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors focus-ring font-medium"
+                className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors focus-ring font-medium flex items-center gap-2"
               >
-                Account Settings
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
               </button>
             </div>
           </div>
@@ -354,75 +271,54 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Account Security */}
+          {/* Account Summary - For all users */}
           <div className="bg-white rounded-2xl shadow-soft border border-neutral-200 p-6">
-            <h2 className="text-xl font-bold text-neutral-900 mb-6">Account Security</h2>
+            <h2 className="text-xl font-bold text-neutral-900 mb-6">Account Summary</h2>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
-                <div>
-                  <h3 className="font-semibold text-neutral-900">Password</h3>
-                  <p className="text-sm text-neutral-600">Last changed recently</p>
-                </div>
-                <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                  Change
-                </button>
-              </div>
-
               <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
                 <div>
                   <h3 className="font-semibold text-neutral-900">Email Address</h3>
                   <p className="text-sm text-neutral-600">{user.email}</p>
                 </div>
-                <span className="text-sm text-success-600 font-medium">Verified</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Account Preferences */}
-          <div className="bg-white rounded-2xl shadow-soft border border-neutral-200 p-6">
-            <h2 className="text-xl font-bold text-neutral-900 mb-6">Preferences</h2>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
-                <div>
-                  <h3 className="font-semibold text-neutral-900">Email Notifications</h3>
-                  <p className="text-sm text-neutral-600">Game results and student activity</p>
-                </div>
-                <button className="w-12 h-6 bg-primary-600 rounded-full relative transition-colors">
-                  <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform shadow-sm"></div>
-                </button>
+                <span className="text-sm text-success-600 font-medium flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Verified
+                </span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
                 <div>
-                  <h3 className="font-semibold text-neutral-900">Data Analytics</h3>
-                  <p className="text-sm text-neutral-600">Help improve ArcHoops with usage data</p>
+                  <h3 className="font-semibold text-neutral-900">Account Type</h3>
+                  <p className="text-sm text-neutral-600 capitalize">{user.role} Account</p>
                 </div>
-                <button className="w-12 h-6 bg-primary-600 rounded-full relative transition-colors">
-                  <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform shadow-sm"></div>
-                </button>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  user.role === 'teacher' 
+                    ? 'bg-secondary-100 text-secondary-800' 
+                    : 'bg-success-100 text-success-800'
+                }`}>
+                  {user.role}
+                </span>
               </div>
+
+              {profileStats && (
+                <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
+                  <div>
+                    <h3 className="font-semibold text-neutral-900">Member Since</h3>
+                    <p className="text-sm text-neutral-600">{formatDate(profileStats.joinDate)}</p>
+                  </div>
+                  <span className="text-sm text-neutral-500 font-medium">
+                    {Math.floor((new Date().getTime() - new Date(profileStats.joinDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-white rounded-2xl shadow-soft border border-error-200 p-6 mt-8">
-          <h2 className="text-xl font-bold text-error-700 mb-4">Danger Zone</h2>
-          <p className="text-neutral-600 mb-6">
-            These actions are permanent and cannot be undone. Please proceed with caution.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-4 py-2 bg-error-50 text-error-700 border border-error-200 rounded-xl hover:bg-error-100 transition-colors focus-ring font-medium">
-              Export My Data
-            </button>
-            <button className="px-4 py-2 bg-error-600 text-white rounded-xl hover:bg-error-700 transition-colors focus-ring font-medium">
-              Delete Account
-            </button>
-          </div>
-        </div>
+
 
         {/* Account Settings Modal */}
         <AccountSettingsModal 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AccountSettingsModalProps {
@@ -7,13 +7,20 @@ interface AccountSettingsModalProps {
 }
 
 export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalProps) {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'security' | 'notifications' | 'privacy'>('security');
+  const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'privacy'>('account');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isChangingDisplayName, setIsChangingDisplayName] = useState(false);
+  const [isShowingDeleteConfirm, setIsShowingDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+  });
+  const [displayNameForm, setDisplayNameForm] = useState({
+    newDisplayName: user?.displayName || '',
   });
   const [notifications, setNotifications] = useState({
     emailGameResults: true,
@@ -24,8 +31,82 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
   const [privacy, setPrivacy] = useState({
     shareUsageData: true,
     allowAnalytics: true,
-    profileVisibility: 'private' as 'public' | 'private',
   });
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
+
+  // Load user preferences when modal opens
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!isOpen || !user) return;
+
+      setIsLoadingPreferences(true);
+      try {
+        const response = await fetch('/api/profile/preferences', {
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const prefs = data.preferences;
+          
+          setNotifications({
+            emailGameResults: prefs.emailGameResults,
+            emailStudentActivity: prefs.emailStudentActivity,
+            emailNewLessons: prefs.emailNewLessons,
+            inAppNotifications: prefs.inAppNotifications,
+          });
+          
+          setPrivacy({
+            shareUsageData: prefs.shareUsageData,
+            allowAnalytics: prefs.allowAnalytics,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      } finally {
+        setIsLoadingPreferences(false);
+      }
+    };
+
+    loadPreferences();
+  }, [isOpen, user]);
+
+  const handleDisplayNameChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!displayNameForm.newDisplayName.trim()) {
+      alert('Display name cannot be empty');
+      return;
+    }
+
+    if (displayNameForm.newDisplayName === user?.displayName) {
+      setIsChangingDisplayName(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/profile/update-name', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ displayName: displayNameForm.newDisplayName.trim() }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update display name');
+      }
+
+      alert('Display name updated successfully');
+      setIsChangingDisplayName(false);
+      window.location.reload(); // Simple refresh for now
+    } catch (error) {
+      console.error('Display name change error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update display name');
+    }
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +192,36 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      alert('Please type "DELETE" to confirm account deletion');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/profile/delete-account', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete account');
+      }
+
+      // Account deleted successfully, log out and redirect
+      alert('Your account has been permanently deleted.');
+      await logout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -134,18 +245,18 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
           <div className="w-64 bg-neutral-50 p-4 border-r border-neutral-200">
             <nav className="space-y-2">
               <button
-                onClick={() => setActiveTab('security')}
+                onClick={() => setActiveTab('account')}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'security'
+                  activeTab === 'account'
                     ? 'bg-primary-100 text-primary-700 font-medium'
                     : 'text-neutral-700 hover:bg-neutral-100'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span>Security</span>
+                  <span>Account</span>
                 </div>
               </button>
 
@@ -185,17 +296,72 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
           {/* Main Content */}
           <div className="flex-1 p-6 max-h-[calc(90vh-80px)] overflow-y-auto">
-            {/* Security Tab */}
-            {activeTab === 'security' && (
+            {/* Account Tab */}
+            {activeTab === 'account' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-4">Security Settings</h3>
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-4">Account Settings</h3>
                   
                   {/* Current Account Info */}
                   <div className="bg-neutral-50 rounded-xl p-4 mb-6">
                     <h4 className="font-medium text-neutral-900 mb-2">Account Information</h4>
                     <p className="text-sm text-neutral-600 mb-1">Email: {user?.email}</p>
                     <p className="text-sm text-neutral-600">Role: {user?.role}</p>
+                  </div>
+
+                  {/* Display Name Change */}
+                  <div className="border border-neutral-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-medium text-neutral-900">Display Name</h4>
+                        <p className="text-sm text-neutral-600">This is how your name appears to others</p>
+                      </div>
+                      <button
+                        onClick={() => setIsChangingDisplayName(!isChangingDisplayName)}
+                        className="px-4 py-2 text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        {isChangingDisplayName ? 'Cancel' : 'Change Name'}
+                      </button>
+                    </div>
+
+                    {isChangingDisplayName ? (
+                      <form onSubmit={handleDisplayNameChange} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-2">
+                            New Display Name
+                          </label>
+                          <input
+                            type="text"
+                            value={displayNameForm.newDisplayName}
+                            onChange={(e) => setDisplayNameForm(prev => ({ ...prev, newDisplayName: e.target.value }))}
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            required
+                          />
+                        </div>
+                        <div className="flex space-x-3">
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                          >
+                            Update Name
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsChangingDisplayName(false);
+                              setDisplayNameForm({ newDisplayName: user?.displayName || '' });
+                            }}
+                            className="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="text-sm text-neutral-600">
+                        Current: <span className="font-medium">{user?.displayName}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Password Change */}
@@ -269,6 +435,76 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                           </button>
                         </div>
                       </form>
+                    )}
+                  </div>
+
+                  {/* Danger Zone */}
+                  <div className="border border-error-200 rounded-xl p-4 mt-8">
+                    <h4 className="font-medium text-error-700 mb-2">Danger Zone</h4>
+                    <p className="text-sm text-neutral-600 mb-4">
+                      This action is permanent and cannot be undone.
+                    </p>
+                    
+                    {!isShowingDeleteConfirm ? (
+                      <button 
+                        onClick={() => setIsShowingDeleteConfirm(true)}
+                        className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 transition-colors font-medium"
+                      >
+                        Delete Account
+                      </button>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="bg-error-50 border border-error-200 rounded-lg p-4">
+                          <h5 className="font-medium text-error-800 mb-2">⚠️ Confirm Account Deletion</h5>
+                          <p className="text-sm text-error-700 mb-3">
+                            This will permanently delete your account and all associated data including:
+                          </p>
+                          <ul className="text-sm text-error-700 list-disc list-inside mb-3 space-y-1">
+                            <li>Your profile and account information</li>
+                            <li>All game predictions and scores</li>
+                            <li>Class memberships and progress</li>
+                            {user?.role === 'teacher' && (
+                              <>
+                                <li>All classes you've created</li>
+                                <li>All lessons you've uploaded</li>
+                              </>
+                            )}
+                          </ul>
+                          <p className="text-sm text-error-700 font-medium">
+                            Type "DELETE" below to confirm:
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="Type DELETE to confirm"
+                            className="w-full px-3 py-2 border border-error-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-error-500 focus:border-transparent"
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={handleDeleteAccount}
+                            disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                            className="px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700 disabled:bg-error-300 disabled:cursor-not-allowed transition-colors font-medium"
+                          >
+                            {isDeleting ? 'Deleting...' : 'Delete My Account'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsShowingDeleteConfirm(false);
+                              setDeleteConfirmText('');
+                            }}
+                            disabled={isDeleting}
+                            className="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 disabled:opacity-50 transition-colors font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -404,34 +640,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                       </button>
                     </div>
 
-                    <div className="p-4 border border-neutral-200 rounded-xl">
-                      <h4 className="font-medium text-neutral-900 mb-2">Profile Visibility</h4>
-                      <p className="text-sm text-neutral-600 mb-4">Control who can see your profile information</p>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="profileVisibility"
-                            value="private"
-                            checked={privacy.profileVisibility === 'private'}
-                            onChange={(e) => setPrivacy(prev => ({ ...prev, profileVisibility: e.target.value as 'private' }))}
-                            className="mr-3 text-primary-600"
-                          />
-                          <span className="text-sm">Private - Only you can see your profile</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="profileVisibility"
-                            value="public"
-                            checked={privacy.profileVisibility === 'public'}
-                            onChange={(e) => setPrivacy(prev => ({ ...prev, profileVisibility: e.target.value as 'public' }))}
-                            className="mr-3 text-primary-600"
-                          />
-                          <span className="text-sm">Public - Other users can see your profile</span>
-                        </label>
-                      </div>
-                    </div>
+
                   </div>
 
                   <button

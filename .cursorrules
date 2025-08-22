@@ -131,6 +131,14 @@ data_management:
     - "Implement proper relations between entities"
     - "Use database transactions for data integrity"
     - "Plan for easy migration from SQLite to PostgreSQL"
+    
+  user_data_deletion:
+    - "CRITICAL: When adding new models/tables that reference User, ALWAYS update the delete account endpoint"
+    - "Location: apps/api/src/routes/profile.ts - DELETE /profile/delete-account endpoint"
+    - "Add deletion logic in the transaction before the user.delete() call"
+    - "Consider cascading effects: if users create data that other users depend on, handle appropriately"
+    - "Order matters: delete dependent records before parent records to avoid foreign key constraints"
+    - "Test deletion thoroughly to ensure no orphaned data remains"
 
 # Security Guidelines
 security:
