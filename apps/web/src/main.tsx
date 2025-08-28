@@ -10,6 +10,7 @@ import './index.css';
 const Login = React.lazy(() => import('./routes/Login'));
 const Signup = React.lazy(() => import('./routes/Signup'));
 const Dashboard = React.lazy(() => import('./routes/Dashboard'));
+const Classes = React.lazy(() => import('./routes/Classes'));
 const Games = React.lazy(() => import('./routes/Games'));
 const Lessons = React.lazy(() => import('./routes/Lessons'));
 const Leaderboard = React.lazy(() => import('./routes/Leaderboard'));
@@ -62,6 +63,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <React.Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
           <Dashboard />
+        </React.Suspense>
+      </ProtectedRoute>
+    )
+  },
+  { 
+    path: '/classes', 
+    element: (
+      <ProtectedRoute>
+        <React.Suspense fallback={<LoadingScreen message="Loading classes..." />}>
+          <Classes />
         </React.Suspense>
       </ProtectedRoute>
     )

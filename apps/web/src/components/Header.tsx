@@ -65,6 +65,16 @@ export function Header() {
                 Dashboard
               </button>
               <button
+                onClick={() => navigate('/classes')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/classes'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                🏫 Classes
+              </button>
+              <button
                 onClick={() => navigate('/games')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === '/games'

@@ -23,6 +23,66 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
     // Directory might already exist, ignore error
   });
 
+  // Get next lesson for user (incomplete or most recent)
+  fastify.get('/lessons/next', {
+    preHandler: (fastify as any).ensureAuth()
+  }, async (request, reply) => {
+    try {
+      const userId = (request as any).user.userId;
+
+      // Get all lessons
+      const lessons = await prisma.lesson.findMany({
+        include: {
+          progresses: {
+            where: { userId },
+            select: {
+              progress: true,
+              completed: true,
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
+      });
+
+      // Find first incomplete lesson
+      const nextLesson = lessons.find(lesson => {
+        const userProgress = lesson.progresses[0];
+        return !userProgress || !userProgress.completed;
+      });
+
+      if (!nextLesson) {
+        return reply.code(404).send({
+          error: 'Not Found',
+          message: 'No lessons available',
+        });
+      }
+
+      // Transform to LessonSummary format
+      const userProgress = nextLesson.progresses[0];
+      const lessonSummary = {
+        id: nextLesson.id,
+        title: nextLesson.title,
+        description: nextLesson.content, // Use content field instead of description
+        videoUrl: nextLesson.videoUrl,
+        embedCode: nextLesson.embedCode,
+        createdBy: nextLesson.authorId, // Map authorId to createdBy
+        createdAt: nextLesson.createdAt.toISOString(),
+        progress: userProgress?.progress ? userProgress.progress / 100 : 0, // Convert from 0-100 to 0-1
+        completed: userProgress?.completed || false,
+      };
+
+      return reply.send(lessonSummary);
+    } catch (error) {
+      console.error('Error fetching next lesson:', error);
+      return reply.code(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to fetch next lesson',
+      });
+    }
+  });
+
   // Upload video for a lesson (teachers only)
   fastify.post('/lessons/:id/upload', {
     preHandler: (fastify as any).ensureAuth()
