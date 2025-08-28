@@ -6,6 +6,7 @@ import { ClassSummary, LeaderboardEntry, UserPointsSummary } from '@archoops/typ
 export function DashboardLeaderboard() {
   const { user } = useAuth();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Fetch user's classes
   const { data: classes } = useQuery({
@@ -103,32 +104,54 @@ export function DashboardLeaderboard() {
         Leaderboard
       </h2>
       
-      {/* Class Selector */}
-      {classes.length > 1 && (
+      {/* Class Selector Dropdown */}
+      {classes && classes.length > 0 && (
         <div className="mb-4">
-          <select
-            value={selectedClassId || ''}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="w-full p-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-          >
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} ({cls.joinCode})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      
-      {/* Class Header */}
-      {selectedClass && (
-        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-          <h3 className="font-semibold text-orange-900">
-            {selectedClass.name} ({selectedClass.joinCode})
-          </h3>
-          <p className="text-sm text-orange-700">
-            {selectedClass.studentCount || 0} students
-          </p>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Select Class to View
+          </label>
+          <div className="relative">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="relative w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-left cursor-pointer hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            >
+              <span className="block truncate text-sm">
+                {selectedClass ? selectedClass.name : 'Select a class...'}
+              </span>
+              <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <svg 
+                  className={`h-4 w-4 text-neutral-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-48 rounded-lg border border-neutral-200 overflow-auto">
+                {classes.map((cls) => (
+                  <button
+                    key={cls.id}
+                    onClick={() => {
+                      setSelectedClassId(cls.id);
+                      setDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-100 ${
+                      selectedClassId === cls.id ? 'bg-orange-50 text-orange-900' : 'text-neutral-900'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-medium">{cls.name}</div>
+                      <div className="text-xs text-neutral-500">Code: {cls.joinCode}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
       
@@ -240,6 +263,14 @@ export function DashboardLeaderboard() {
             )}
           </div>
         </div>
+      )}
+      
+      {/* Click outside to close dropdown */}
+      {dropdownOpen && (
+        <div 
+          className="fixed inset-0 z-0" 
+          onClick={() => setDropdownOpen(false)}
+        />
       )}
     </div>
   );
