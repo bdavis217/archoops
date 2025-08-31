@@ -11,7 +11,7 @@ import { generateJoinCode } from '../utils/joinCode.js';
 export default async function classRoutes(fastify: FastifyInstance) {
   // Get student's enrolled classes
   fastify.get('/student/classes', {
-    preHandler: fastify.ensureAuth('student')
+    preHandler: fastify.ensureAuth('STUDENT')
   }, async (request, reply) => {
     try {
       const enrollments = await prisma.enrollment.findMany({
@@ -24,16 +24,45 @@ export default async function classRoutes(fastify: FastifyInstance) {
         },
       });
 
-      const classSummaries = enrollments.map(enrollment => 
-        ClassSummarySchema.parse({
-          id: enrollment.class.id,
-          name: enrollment.class.name,
-          joinCode: enrollment.class.joinCode,
-          createdAt: enrollment.class.createdAt,
+      // Get class statistics for each enrollment
+      const classSummariesWithStats = await Promise.all(
+        enrollments.map(async (enrollment) => {
+          const classId = enrollment.class.id;
+          const joinedAt = enrollment.joinedAt;
+          
+          // Count predictions made since joining this class
+          const predictionCount = await prisma.prediction.count({
+            where: {
+              userId: request.user.userId,
+              submittedAt: {
+                gte: joinedAt
+              }
+            }
+          });
+          
+          // Count completed lessons since joining this class
+          const completedLessonCount = await prisma.lessonProgress.count({
+            where: {
+              userId: request.user.userId,
+              completed: true,
+              updatedAt: {
+                gte: joinedAt
+              }
+            }
+          });
+          
+          return {
+            id: enrollment.class.id,
+            name: enrollment.class.name,
+            joinCode: enrollment.class.joinCode,
+            createdAt: enrollment.class.createdAt,
+            predictionCount,
+            completedLessonCount,
+          };
         })
       );
 
-      return reply.send(classSummaries);
+      return reply.send(classSummariesWithStats);
     } catch (error) {
       fastify.log.error(error);
       return reply.code(500).send({
@@ -45,7 +74,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Get teacher's classes
   fastify.get('/teacher/classes', {
-    preHandler: fastify.ensureAuth('teacher')
+    preHandler: fastify.ensureAuth('TEACHER')
   }, async (request, reply) => {
     try {
       const classes = await prisma.class.findMany({
@@ -56,17 +85,40 @@ export default async function classRoutes(fastify: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
       });
 
-      const classSummaries = classes.map(cls => 
-        ClassSummarySchema.parse({
-          id: cls.id,
-          name: cls.name,
-          joinCode: cls.joinCode,
-          createdAt: cls.createdAt,
-          studentCount: cls.enrollments.length, // Add student count
+      // Get class statistics for each class
+      const classSummariesWithStats = await Promise.all(
+        classes.map(async (cls) => {
+          const classId = cls.id;
+          const studentIds = cls.enrollments.map(e => e.userId);
+          
+          // Count total predictions made by students in this class
+          const totalPredictions = await prisma.prediction.count({
+            where: {
+              userId: { in: studentIds }
+            }
+          });
+          
+          // Count total completed lessons by students in this class
+          const totalCompletedLessons = await prisma.lessonProgress.count({
+            where: {
+              userId: { in: studentIds },
+              completed: true
+            }
+          });
+          
+          return {
+            id: cls.id,
+            name: cls.name,
+            joinCode: cls.joinCode,
+            createdAt: cls.createdAt,
+            studentCount: cls.enrollments.length,
+            predictionCount: totalPredictions,
+            completedLessonCount: totalCompletedLessons,
+          };
         })
       );
 
-      return reply.send(classSummaries);
+      return reply.send(classSummariesWithStats);
     } catch (error) {
       fastify.log.error(error);
       return reply.code(500).send({
@@ -78,7 +130,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Create class (teacher only)
   fastify.post('/classes', {
-    preHandler: fastify.ensureAuth('teacher')
+    preHandler: fastify.ensureAuth('TEACHER')
   }, async (request, reply) => {
     try {
       const data = CreateClassInputSchema.parse(request.body);
@@ -119,7 +171,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Delete class (teacher only)
   fastify.delete('/classes/:classId', {
-    preHandler: fastify.ensureAuth('teacher')
+    preHandler: fastify.ensureAuth('TEACHER')
   }, async (request, reply) => {
     try {
       const { classId } = request.params as { classId: string };
@@ -161,7 +213,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Rotate join code (teacher only)
   fastify.post('/classes/:classId/rotate-code', {
-    preHandler: fastify.ensureAuth('teacher')
+    preHandler: fastify.ensureAuth('TEACHER')
   }, async (request, reply) => {
     try {
       const { classId } = request.params as { classId: string };
@@ -204,7 +256,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Get class roster (teacher only)
   fastify.get('/classes/:classId/roster', {
-    preHandler: fastify.ensureAuth('teacher')
+    preHandler: fastify.ensureAuth('TEACHER')
   }, async (request, reply) => {
     try {
       const { classId } = request.params as { classId: string };
@@ -258,7 +310,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Join class (student only)
   fastify.post('/classes/join', {
-    preHandler: fastify.ensureAuth('student')
+    preHandler: fastify.ensureAuth('STUDENT')
   }, async (request, reply) => {
     try {
       const data = JoinClassInputSchema.parse(request.body);
@@ -328,7 +380,7 @@ export default async function classRoutes(fastify: FastifyInstance) {
 
   // Leave class (student only)
   fastify.delete('/classes/:classId/leave', {
-    preHandler: fastify.ensureAuth('student')
+    preHandler: fastify.ensureAuth('STUDENT')
   }, async (request, reply) => {
     try {
       const { classId } = request.params as { classId: string };

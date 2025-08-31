@@ -16,6 +16,8 @@ export const ClassSummarySchema = z.object({
   joinCode: z.string(),
   createdAt: z.date(),
   studentCount: z.number().optional(), // For teacher views
+  predictionCount: z.number().optional(), // Number of predictions
+  completedLessonCount: z.number().optional(), // Number of completed lessons
 });
 
 export const ClassRosterSchema = z.object({

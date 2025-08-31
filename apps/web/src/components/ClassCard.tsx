@@ -159,12 +159,16 @@ export function ClassCard({ classData, onDelete, onRotateCode, onLeave, isTeache
         {/* Class Stats */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center p-3 bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl">
-            <p className="text-xl font-bold text-secondary-700">0</p>
-            <p className="text-xs text-secondary-600 font-medium">Predictions</p>
+            <p className="text-xl font-bold text-secondary-700">{classData.predictionCount || 0}</p>
+            <p className="text-xs text-secondary-600 font-medium">
+              {isTeacher ? 'Class Predictions' : 'Your Predictions'}
+            </p>
           </div>
           <div className="text-center p-3 bg-gradient-to-br from-success-50 to-success-100 rounded-xl">
-            <p className="text-xl font-bold text-success-700">0</p>
-            <p className="text-xs text-success-600 font-medium">Lessons</p>
+            <p className="text-xl font-bold text-success-700">{classData.completedLessonCount || 0}</p>
+            <p className="text-xs text-success-600 font-medium">
+              {isTeacher ? 'Class Lessons' : 'Your Lessons'}
+            </p>
           </div>
         </div>
 
