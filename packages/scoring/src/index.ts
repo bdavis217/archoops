@@ -1,6 +1,6 @@
 // Types for scoring
 export interface PredictionData {
-  predictionType: 'GAME_WINNER' | 'FINAL_SCORE' | 'PLAYER_STAT';
+  predictionType: 'GAME_WINNER' | 'FINAL_SCORE' | 'PLAYER_STAT' | 'TEAM_THREES';
   predictedWinner?: string;
   predictedHomeScore?: number;
   predictedAwayScore?: number;
@@ -9,6 +9,9 @@ export interface PredictionData {
     statType: string;
     predictedValue: number;
   }>;
+  // TEAM_THREES
+  predictedHomeThrees?: number;
+  predictedAwayThrees?: number;
 }
 
 export interface GameResult {
@@ -21,12 +24,16 @@ export interface GameResult {
     statType: string;
     actualValue: number;
   }>;
+  // TEAM_THREES actuals aggregated per team abbreviation
+  homeTeamThrees?: number;
+  awayTeamThrees?: number;
 }
 
 export interface PointsBreakdown {
   winnerPoints: number;
   scorePoints: number;
   playerStatPoints: number;
+  teamThreesPoints: number;
   bonusPoints: number;
   totalPoints: number;
   details: {
@@ -39,6 +46,14 @@ export interface PointsBreakdown {
       actual: number;
       points: number;
     }>;
+    teamThrees?: {
+      homePredicted: number;
+      homeActual: number;
+      awayPredicted: number;
+      awayActual: number;
+      totalDifference: number;
+      points: number;
+    };
   };
 }
 
@@ -52,6 +67,7 @@ export class LinearScoringV1 implements ScoringEngine {
       winnerPoints: 0,
       scorePoints: 0,
       playerStatPoints: 0,
+      teamThreesPoints: 0,
       bonusPoints: 0,
       totalPoints: 0,
       details: {
@@ -111,8 +127,32 @@ export class LinearScoringV1 implements ScoringEngine {
       breakdown.details.playerStatAccuracy = playerStatAccuracy;
     }
 
+    // Score TEAM_THREES predictions
+    if (
+      prediction.predictionType === 'TEAM_THREES' &&
+      prediction.predictedHomeThrees !== undefined &&
+      prediction.predictedAwayThrees !== undefined &&
+      actual.homeTeamThrees !== undefined &&
+      actual.awayTeamThrees !== undefined
+    ) {
+      const homeDifference = Math.abs(actual.homeTeamThrees - prediction.predictedHomeThrees);
+      const awayDifference = Math.abs(actual.awayTeamThrees - prediction.predictedAwayThrees);
+      const totalDifference = homeDifference + awayDifference;
+      
+      const points = Math.max(0, 25 - totalDifference);
+      breakdown.teamThreesPoints = points;
+      breakdown.details.teamThrees = {
+        homePredicted: prediction.predictedHomeThrees,
+        homeActual: actual.homeTeamThrees,
+        awayPredicted: prediction.predictedAwayThrees,
+        awayActual: actual.awayTeamThrees,
+        totalDifference,
+        points,
+      };
+    }
+
     // Calculate total with cap
-    const uncappedTotal = breakdown.winnerPoints + breakdown.scorePoints + breakdown.playerStatPoints + breakdown.bonusPoints;
+    const uncappedTotal = breakdown.winnerPoints + breakdown.scorePoints + breakdown.playerStatPoints + breakdown.teamThreesPoints + breakdown.bonusPoints;
     breakdown.totalPoints = Math.min(uncappedTotal, 200);
 
     return breakdown;

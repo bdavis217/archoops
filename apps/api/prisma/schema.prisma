@@ -93,6 +93,9 @@ model Prediction {
   predictedHomeScore    Int?
   predictedAwayScore    Int?
   playerStatPredictions String?  // JSON string of player predictions
+  // TEAM_THREES fields
+  predictedHomeThrees   Int?
+  predictedAwayThrees   Int?
   submittedAt           DateTime @default(now())
   isLocked              Boolean  @default(false) // Game started
   actualOutcome         String?  // JSON string filled after game ends

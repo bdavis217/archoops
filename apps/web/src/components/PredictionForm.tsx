@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Game, CreatePrediction, PredictionTypeSchema } from '@archoops/types';
+import { Game, CreatePrediction, Prediction, PredictionTypeSchema } from '@archoops/types';
 
 interface PredictionFormProps {
   game: Game;
   onSubmit: (prediction: CreatePrediction) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
-  existingPrediction?: CreatePrediction;
+  existingPrediction?: Prediction;
   isUpdate?: boolean;
 }
 
@@ -18,8 +18,8 @@ export function PredictionForm({
   existingPrediction,
   isUpdate = false
 }: PredictionFormProps) {
-  const [predictionType, setPredictionType] = useState<'GAME_WINNER' | 'FINAL_SCORE'>(
-    existingPrediction?.predictionType as any || 'GAME_WINNER'
+  const [predictionType, setPredictionType] = useState<'GAME_WINNER' | 'FINAL_SCORE' | 'TEAM_THREES'>(
+    (existingPrediction?.predictionType as any) || 'GAME_WINNER'
   );
   const [predictedWinner, setPredictedWinner] = useState<string>(
     existingPrediction?.predictedWinner || ''
@@ -29,6 +29,12 @@ export function PredictionForm({
   );
   const [predictedAwayScore, setPredictedAwayScore] = useState<number>(
     existingPrediction?.predictedAwayScore || 0
+  );
+  const [predictedHomeThrees, setPredictedHomeThrees] = useState<number>(
+    existingPrediction?.predictedHomeThrees || 0
+  );
+  const [predictedAwayThrees, setPredictedAwayThrees] = useState<number>(
+    existingPrediction?.predictedAwayThrees || 0
   );
 
   // Auto-select winner based on scores
@@ -46,16 +52,20 @@ export function PredictionForm({
   // Update state when existingPrediction prop changes
   useEffect(() => {
     if (existingPrediction) {
-      setPredictionType(existingPrediction.predictionType as 'GAME_WINNER' | 'FINAL_SCORE');
+      setPredictionType(existingPrediction.predictionType as 'GAME_WINNER' | 'FINAL_SCORE' | 'TEAM_THREES');
       setPredictedWinner(existingPrediction.predictedWinner || '');
       setPredictedHomeScore(existingPrediction.predictedHomeScore || 0);
       setPredictedAwayScore(existingPrediction.predictedAwayScore || 0);
+      setPredictedHomeThrees(existingPrediction.predictedHomeThrees || 0);
+      setPredictedAwayThrees(existingPrediction.predictedAwayThrees || 0);
     } else {
       // Reset to defaults for new prediction
       setPredictionType('GAME_WINNER');
       setPredictedWinner('');
       setPredictedHomeScore(0);
       setPredictedAwayScore(0);
+      setPredictedHomeThrees(0);
+      setPredictedAwayThrees(0);
     }
   }, [existingPrediction]);
 
@@ -72,6 +82,10 @@ export function PredictionForm({
           predictedWinner,
           predictedHomeScore,
           predictedAwayScore 
+        }),
+        ...(predictionType === 'TEAM_THREES' && {
+          predictedHomeThrees,
+          predictedAwayThrees,
         }),
       } as CreatePrediction;
 
@@ -105,6 +119,17 @@ export function PredictionForm({
         // Winner validation (should be auto-selected, but just in case)
         if (!predictedWinner) {
           setError('Winner should be automatically selected based on scores');
+          return;
+        }
+      }
+
+      if (predictionType === 'TEAM_THREES') {
+        if (predictedHomeThrees < 0 || predictedAwayThrees < 0) {
+          setError('3-pointers made cannot be negative');
+          return;
+        }
+        if (predictedHomeThrees > 99 || predictedAwayThrees > 99) {
+          setError('Please enter a value between 0 and 99');
           return;
         }
       }
@@ -190,7 +215,7 @@ export function PredictionForm({
             <label className="block text-sm font-medium text-neutral-700 mb-2">
               Prediction Type
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setPredictionType('GAME_WINNER')}
@@ -215,85 +240,82 @@ export function PredictionForm({
                 <div className="font-medium">Final Score</div>
                 <div className="text-xs opacity-75">Up to 50 points</div>
               </button>
+              <button
+                type="button"
+                onClick={() => setPredictionType('TEAM_THREES')}
+                className={`p-3 rounded-lg border-2 transition-colors ${
+                  predictionType === 'TEAM_THREES'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-neutral-200 text-neutral-700 hover:border-neutral-300'
+                }`}
+              >
+                <div className="font-medium">3 Pointers</div>
+                <div className="text-xs opacity-75">Up to 25 points</div>
+              </button>
             </div>
           </div>
 
           {/* Winner Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              {predictionType === 'GAME_WINNER' ? 'Who will win?' : 'Winner (determined by score)'}
-              {predictionType === 'FINAL_SCORE' && predictedHomeScore > 0 && predictedAwayScore > 0 && (
-                <span className="ml-2 text-xs text-blue-600 font-normal">
-                  ✓ Auto-selected
-                </span>
-              )}
-              {predictionType === 'GAME_WINNER' && (
+          {predictionType === 'GAME_WINNER' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Who will win?
                 <span className="ml-2 text-xs text-gray-500">
                   Current: {predictedWinner || 'None selected'}
                 </span>
-              )}
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-                            <button
-                type="button"
-                onClick={() => {
-                  if (predictionType === 'GAME_WINNER') {
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
                     setPredictedWinner(game.awayTeam.abbreviation);
-                  }
-                }}
-                disabled={predictionType === 'FINAL_SCORE'}
-                className={`p-4 rounded-lg border-2 transition-colors ${
-                  predictedWinner === game.awayTeam.abbreviation
-                    ? 'border-blue-500 bg-blue-50'
-                    : predictionType === 'FINAL_SCORE' 
-                      ? 'border-neutral-200 bg-neutral-50 cursor-not-allowed opacity-75'
+                  }}
+                  className={`p-4 rounded-lg border-2 transition-colors ${
+                    predictedWinner === game.awayTeam.abbreviation
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-neutral-200 hover:border-neutral-300'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-8 h-8 rounded text-white text-sm flex items-center justify-center font-bold"
-                    style={{ backgroundColor: game.awayTeam.primaryColor }}
-                  >
-                    {game.awayTeam.abbreviation.slice(0, 2)}
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-8 h-8 rounded text-white text-sm flex items-center justify-center font-bold"
+                      style={{ backgroundColor: game.awayTeam.primaryColor }}
+                    >
+                      {game.awayTeam.abbreviation.slice(0, 2)}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{game.awayTeam.abbreviation}</div>
+                      <div className="text-sm text-neutral-600">{game.awayTeam.city}</div>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium">{game.awayTeam.abbreviation}</div>
-                    <div className="text-sm text-neutral-600">{game.awayTeam.city}</div>
-                  </div>
-                </div>
-              </button>
-                            <button
-                type="button"
-                onClick={() => {
-                  if (predictionType === 'GAME_WINNER') {
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setPredictedWinner(game.homeTeam.abbreviation);
-                  }
-                }}
-                disabled={predictionType === 'FINAL_SCORE'}
-                className={`p-4 rounded-lg border-2 transition-colors ${
-                  predictedWinner === game.homeTeam.abbreviation
-                    ? 'border-blue-500 bg-blue-50'
-                    : predictionType === 'FINAL_SCORE' 
-                      ? 'border-neutral-200 bg-neutral-50 cursor-not-allowed opacity-75'
+                  }}
+                  className={`p-4 rounded-lg border-2 transition-colors ${
+                    predictedWinner === game.homeTeam.abbreviation
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-neutral-200 hover:border-neutral-300'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-8 h-8 rounded text-white text-sm flex items-center justify-center font-bold"
-                    style={{ backgroundColor: game.homeTeam.primaryColor }}
-                  >
-                    {game.homeTeam.abbreviation.slice(0, 2)}
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-8 h-8 rounded text-white text-sm flex items-center justify-center font-bold"
+                      style={{ backgroundColor: game.homeTeam.primaryColor }}
+                    >
+                      {game.homeTeam.abbreviation.slice(0, 2)}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{game.homeTeam.abbreviation}</div>
+                      <div className="text-sm text-neutral-600">{game.homeTeam.city}</div>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium">{game.homeTeam.abbreviation}</div>
-                    <div className="text-sm text-neutral-600">{game.homeTeam.city}</div>
-                  </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Score Prediction */}
           {predictionType === 'FINAL_SCORE' && (
@@ -332,6 +354,47 @@ export function PredictionForm({
               </div>
               <div className="mt-2 text-xs text-neutral-500">
                 NBA games typically range from 95-130 points per team
+              </div>
+            </div>
+          )}
+
+          {/* Team Threes Prediction */}
+          {predictionType === 'TEAM_THREES' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                3 Pointers Made
+              </label>
+              <div className="grid grid-cols-3 gap-3 items-center">
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    {game.awayTeam.abbreviation}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={predictedAwayThrees}
+                    onChange={(e) => setPredictedAwayThrees(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="text-center text-neutral-500 font-medium">-</div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    {game.homeTeam.abbreviation}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={predictedHomeThrees}
+                    onChange={(e) => setPredictedHomeThrees(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-neutral-500">
+                Typical NBA team 3PM range: 8-18
               </div>
             </div>
           )}

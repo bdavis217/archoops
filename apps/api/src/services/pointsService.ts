@@ -50,12 +50,23 @@ export class PointsService {
       predictedWinner: prediction.predictedWinner || undefined,
       predictedHomeScore: prediction.predictedHomeScore || undefined,
       predictedAwayScore: prediction.predictedAwayScore || undefined,
-      playerStatPredictions: prediction.playerStatPredictions 
+      playerStatPredictions: prediction.playerStatPredictions
         ? JSON.parse(prediction.playerStatPredictions)
         : undefined,
+      predictedHomeThrees: prediction.predictedHomeThrees || undefined,
+      predictedAwayThrees: prediction.predictedAwayThrees || undefined,
     };
 
-    // Convert game result to GameResult format
+    // Aggregate team three-pointers from game stats (statType '3pm')
+    const teamThreePointers: Record<string, number> = {};
+    for (const stat of prediction.game.gameStats) {
+      const isThree = String(stat.statType).toLowerCase() === '3pm';
+      if (isThree) {
+        const team = stat.teamAbbreviation;
+        teamThreePointers[team] = (teamThreePointers[team] || 0) + Number(stat.statValue || 0);
+      }
+    }
+
     const gameResult: GameResult = {
       status: 'COMPLETED',
       homeScore: prediction.game.homeScore!,
@@ -68,6 +79,8 @@ export class PointsService {
         statType: stat.statType,
         actualValue: stat.statValue,
       })),
+      homeTeamThrees: teamThreePointers[prediction.game.homeTeam.abbreviation] || 0,
+      awayTeamThrees: teamThreePointers[prediction.game.awayTeam.abbreviation] || 0,
     };
 
     // Calculate points using scoring engine

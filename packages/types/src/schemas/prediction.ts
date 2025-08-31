@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Prediction types
-export const PredictionTypeSchema = z.enum(['GAME_WINNER', 'FINAL_SCORE', 'PLAYER_STAT']);
+export const PredictionTypeSchema = z.enum(['GAME_WINNER', 'FINAL_SCORE', 'PLAYER_STAT', 'TEAM_THREES']);
 
 export const PlayerStatPredictionSchema = z.object({
   playerName: z.string(),
@@ -16,6 +16,9 @@ export const CreatePredictionSchema = z.object({
   predictedHomeScore: z.number().min(0).optional(),
   predictedAwayScore: z.number().min(0).optional(),
   playerStatPredictions: z.array(PlayerStatPredictionSchema).optional(),
+  // TEAM_THREES fields
+  predictedHomeThrees: z.number().int().min(0).max(99).optional(),
+  predictedAwayThrees: z.number().int().min(0).max(99).optional(),
 });
 
 export type CreatePrediction = z.infer<typeof CreatePredictionSchema>;
@@ -29,6 +32,9 @@ export const PredictionSchema = z.object({
   predictedHomeScore: z.number().optional(),
   predictedAwayScore: z.number().optional(),
   playerStatPredictions: z.array(PlayerStatPredictionSchema).optional(),
+  // TEAM_THREES fields
+  predictedHomeThrees: z.number().optional(),
+  predictedAwayThrees: z.number().optional(),
   submittedAt: z.string().datetime(),
   isLocked: z.boolean(),
   accuracyScore: z.number().min(0).max(100).nullable().optional(),

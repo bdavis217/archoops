@@ -65,8 +65,10 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
           predictedHomeScore: data.predictedHomeScore || 0,
           predictedAwayScore: data.predictedAwayScore || 0,
           playerStatPredictions: data.playerStatPredictions ? JSON.stringify(data.playerStatPredictions) : null,
+          predictedHomeThrees: (data as any).predictedHomeThrees ?? null,
+          predictedAwayThrees: (data as any).predictedAwayThrees ?? null,
           isLocked: false,
-        },
+        } as any,
       });
 
       const predictionResponse = PredictionSchema.parse({
@@ -78,6 +80,8 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
         predictedHomeScore: prediction.predictedHomeScore,
         predictedAwayScore: prediction.predictedAwayScore,
         playerStatPredictions: prediction.playerStatPredictions ? JSON.parse(prediction.playerStatPredictions) : undefined,
+        predictedHomeThrees: (prediction as any).predictedHomeThrees ?? undefined,
+        predictedAwayThrees: (prediction as any).predictedAwayThrees ?? undefined,
         submittedAt: prediction.submittedAt.toISOString(),
         isLocked: prediction.isLocked,
         accuracyScore: prediction.accuracyScore,
@@ -137,6 +141,8 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
         predictedHomeScore: prediction.predictedHomeScore,
         predictedAwayScore: prediction.predictedAwayScore,
         playerStatPredictions: prediction.playerStatPredictions ? JSON.parse(prediction.playerStatPredictions) : undefined,
+        predictedHomeThrees: (prediction as any).predictedHomeThrees ?? undefined,
+        predictedAwayThrees: (prediction as any).predictedAwayThrees ?? undefined,
         submittedAt: prediction.submittedAt.toISOString(),
         isLocked: prediction.isLocked,
         accuracyScore: prediction.accuracyScore,
@@ -213,7 +219,9 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
           predictedHomeScore: data.predictedHomeScore !== undefined ? data.predictedHomeScore : existingPrediction.predictedHomeScore,
           predictedAwayScore: data.predictedAwayScore !== undefined ? data.predictedAwayScore : existingPrediction.predictedAwayScore,
           playerStatPredictions: data.playerStatPredictions ? JSON.stringify(data.playerStatPredictions) : existingPrediction.playerStatPredictions,
-        },
+          predictedHomeThrees: (data as any).predictedHomeThrees !== undefined ? (data as any).predictedHomeThrees : (existingPrediction as any).predictedHomeThrees,
+          predictedAwayThrees: (data as any).predictedAwayThrees !== undefined ? (data as any).predictedAwayThrees : (existingPrediction as any).predictedAwayThrees,
+        } as any,
       });
       
       const predictionResponse = PredictionSchema.parse({
@@ -225,6 +233,8 @@ export default async function predictionRoutes(fastify: FastifyInstance) {
         predictedHomeScore: updatedPrediction.predictedHomeScore,
         predictedAwayScore: updatedPrediction.predictedAwayScore,
         playerStatPredictions: updatedPrediction.playerStatPredictions ? JSON.parse(updatedPrediction.playerStatPredictions) : undefined,
+        predictedHomeThrees: (updatedPrediction as any).predictedHomeThrees ?? undefined,
+        predictedAwayThrees: (updatedPrediction as any).predictedAwayThrees ?? undefined,
         submittedAt: updatedPrediction.submittedAt.toISOString(),
         isLocked: updatedPrediction.isLocked,
         accuracyScore: updatedPrediction.accuracyScore,
