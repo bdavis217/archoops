@@ -74,6 +74,7 @@ export function Header() {
               >
                 🏫 Classes
               </button>
+              {/*
               <button
                 onClick={() => navigate('/games')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -126,6 +127,7 @@ export function Header() {
                   ⚙️ Admin
                 </button>
               )}
+              */}
             </nav>
             
             {/* Points Counter & User Stats */}
