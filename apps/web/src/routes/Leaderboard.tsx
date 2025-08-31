@@ -36,7 +36,7 @@ export default function Leaderboard() {
       setIsLoadingClasses(true);
       setError(null);
 
-      const endpoint = user.role === 'teacher' 
+      const endpoint = (user.role === 'TEACHER' || user.role === 'ADMIN')
         ? '/api/teacher/classes'
         : '/api/student/classes';
 
@@ -51,7 +51,7 @@ export default function Leaderboard() {
       const data = await response.json();
       
       if (data.length === 0) {
-        setError(user.role === 'teacher' 
+        setError((user.role === 'TEACHER' || user.role === 'ADMIN')
           ? 'You haven\'t created any classes yet. Create a class to see leaderboards.'
           : 'You haven\'t joined any classes yet. Join a class to see leaderboards.'
         );
@@ -156,7 +156,7 @@ export default function Leaderboard() {
             {/* Class Selector */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                {user.role === 'teacher' ? 'Select Class' : 'Select Class to View'}
+                {(user.role === 'TEACHER' || user.role === 'ADMIN') ? 'Select Class' : 'Select Class to View'}
               </label>
               <div className="relative">
                 <button

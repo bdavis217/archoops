@@ -5,7 +5,7 @@ export const SignupInputSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(10, 'Password must be at least 10 characters'),
   displayName: z.string().min(2, 'Display name must be at least 2 characters'),
-  role: z.enum(['teacher', 'student']),
+  role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']),
   classJoinCode: z.union([
     z.string().length(0),
     z.string().length(6, 'Class code must be exactly 6 characters')
@@ -31,7 +31,7 @@ export const PublicUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   displayName: z.string(),
-  role: z.enum(['teacher', 'student']),
+  role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']),
 });
 
 // Inferred types

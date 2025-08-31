@@ -42,7 +42,7 @@ export default function Profile() {
       if (!response.ok) throw new Error('Failed to fetch profile stats');
       return response.json();
     },
-    enabled: !!user && user.role === 'teacher',
+    enabled: !!user && (user.role === 'TEACHER' || user.role === 'ADMIN'),
   });
 
   // Fetch recent classes for teachers
@@ -55,7 +55,7 @@ export default function Profile() {
       if (!response.ok) throw new Error('Failed to fetch classes');
       return response.json();
     },
-    enabled: !!user && user.role === 'teacher',
+    enabled: !!user && (user.role === 'TEACHER' || user.role === 'ADMIN'),
   });
 
   // Fetch recent lessons for teachers
@@ -68,7 +68,7 @@ export default function Profile() {
       if (!response.ok) throw new Error('Failed to fetch lessons');
       return response.json();
     },
-    enabled: !!user && user.role === 'teacher',
+    enabled: !!user && (user.role === 'TEACHER' || user.role === 'ADMIN'),
   });
 
 
@@ -109,7 +109,8 @@ export default function Profile() {
               
               <div className="flex items-center gap-2 mb-3">
                 <span className={`inline-block w-3 h-3 rounded-full ${
-                  user.role === 'teacher' ? 'bg-secondary-400' : 'bg-success-400'
+                  user.role === 'ADMIN' ? 'bg-red-400' : 
+                  user.role === 'TEACHER' ? 'bg-secondary-400' : 'bg-success-400'
                 }`} />
                 <span className="text-neutral-600 capitalize font-medium">{user.role}</span>
               </div>
@@ -139,7 +140,7 @@ export default function Profile() {
         </div>
 
         {/* Stats Cards - Only for Teachers */}
-        {user.role === 'teacher' && profileStats && (
+        {(user.role === 'TEACHER' || user.role === 'ADMIN') && profileStats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-2xl shadow-soft border border-neutral-200 p-6">
               <div className="flex items-center justify-between">
@@ -187,7 +188,7 @@ export default function Profile() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Classes - Only for Teachers */}
-          {user.role === 'teacher' && (
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
             <div className="bg-white rounded-2xl shadow-soft border border-neutral-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-neutral-900">Your Classes</h2>
@@ -230,7 +231,7 @@ export default function Profile() {
           )}
 
           {/* Recent Lessons - Only for Teachers */}
-          {user.role === 'teacher' && (
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
             <div className="bg-white rounded-2xl shadow-soft border border-neutral-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-neutral-900">Your Lessons</h2>
@@ -295,7 +296,8 @@ export default function Profile() {
                   <p className="text-sm text-neutral-600 capitalize">{user.role} Account</p>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  user.role === 'teacher' 
+                  user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                  user.role === 'TEACHER' 
                     ? 'bg-secondary-100 text-secondary-800' 
                     : 'bg-success-100 text-success-800'
                 }`}>

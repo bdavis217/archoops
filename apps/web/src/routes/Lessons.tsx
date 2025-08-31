@@ -25,7 +25,7 @@ export default function Lessons() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const isTeacher = user?.role === 'teacher';
+  const isTeacher = user?.role === 'TEACHER' || user?.role === 'ADMIN';
 
   // Fetch lessons
   const { data: lessons, isLoading, error: lessonsError } = useQuery({

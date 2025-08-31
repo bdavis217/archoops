@@ -26,6 +26,19 @@ async function generateJoinCode(): Promise<string> {
 async function main() {
   console.log('🌱 Seeding database...');
 
+  // Create an admin user
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@archoops.com' },
+    update: {},
+    create: {
+      email: 'admin@archoops.com',
+      passwordHash: adminPassword,
+      displayName: 'System Admin',
+      role: 'ADMIN',
+    },
+  });
+
   // Create a teacher user
   const teacherPassword = await bcrypt.hash('teacher123', 10);
   const teacher = await prisma.user.upsert({
@@ -35,7 +48,7 @@ async function main() {
       email: 'teacher@archoops.com',
       passwordHash: teacherPassword,
       displayName: 'Demo Teacher',
-      role: 'teacher',
+      role: 'TEACHER',
     },
   });
 
@@ -48,7 +61,7 @@ async function main() {
       email: 'student@archoops.com',
       passwordHash: studentPassword,
       displayName: 'Demo Student',
-      role: 'student',
+      role: 'STUDENT',
     },
   });
 
@@ -89,6 +102,7 @@ async function main() {
   await MockNbaService.seedDatabase();
 
   console.log('✅ Seeding completed!');
+  console.log(`Admin: admin@archoops.com / admin123`);
   console.log(`Teacher: teacher@archoops.com / teacher123`);
   console.log(`Student: student@archoops.com / student123`);
   console.log(`Demo Class Join Code: ${joinCode}`);

@@ -236,6 +236,38 @@ workflow:
     test: adding tests
     chore: maintenance tasks
 
+# Git and GitHub Rules
+git_workflow:
+  CRITICAL_RULES:
+    - "NEVER commit or push to GitHub without explicit user permission"
+    - "ALWAYS ask user before running git add, git commit, or git push commands"
+    - "User must explicitly request 'save to github' or 'commit changes' before any git operations"
+    - "When user requests saving changes, describe what will be committed before executing"
+    - "Only stage and commit files that are directly related to the current task"
+  
+  allowed_git_operations_without_permission:
+    - "git status (checking repository status)"
+    - "git log (viewing commit history)"
+    - "git diff (showing file differences)"
+    - "git remote -v (checking remote configuration)"
+    - "git branch (listing branches)"
+  
+  require_permission_for:
+    - "git add (staging files)"
+    - "git commit (creating commits)"
+    - "git push (pushing to remote)"
+    - "git pull (pulling from remote)"
+    - "git merge (merging branches)"
+    - "git rebase (rebasing branches)"
+    - "git reset (resetting changes)"
+  
+  commit_workflow:
+    - "When user requests saving changes:"
+    - "1. Show what files will be added (git status)"
+    - "2. Describe the proposed commit message"
+    - "3. Ask for final confirmation before executing"
+    - "4. Only proceed after explicit user approval"
+
 # Common Pitfalls & Debugging
 common_pitfalls:
   crud_operations:

@@ -12,7 +12,7 @@ export function DashboardLeaderboard() {
   const { data: classes } = useQuery({
     queryKey: ['classes', user?.role],
     queryFn: async (): Promise<ClassSummary[]> => {
-      const endpoint = user?.role === 'teacher' ? '/api/teacher/classes' : '/api/student/classes';
+      const endpoint = (user?.role === 'TEACHER' || user?.role === 'ADMIN') ? '/api/teacher/classes' : '/api/student/classes';
       const response = await fetch(endpoint, { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch classes');

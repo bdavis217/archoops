@@ -92,10 +92,10 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userId = (request as any).user.userId;
       const userRole = (request as any).user.role;
 
-      if (userRole !== 'teacher') {
+      if (userRole !== 'TEACHER' && userRole !== 'ADMIN') {
         return reply.code(403).send({
           error: 'Forbidden',
-          message: 'Only teachers can upload lesson videos',
+          message: 'Only teachers and admins can upload lesson videos',
         });
       }
 
@@ -315,10 +315,10 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userId = (request as any).user.userId;
       const userRole = (request as any).user.role;
 
-      if (userRole !== 'teacher') {
+      if (userRole !== 'TEACHER' && userRole !== 'ADMIN') {
         return reply.code(403).send({
           error: 'Forbidden',
-          message: 'Only teachers can create lessons',
+          message: 'Only teachers and admins can create lessons',
         });
       }
 
@@ -374,10 +374,10 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userId = (request as any).user.userId;
       const userRole = (request as any).user.role;
 
-      if (userRole !== 'teacher') {
+      if (userRole !== 'TEACHER' && userRole !== 'ADMIN') {
         return reply.code(403).send({
           error: 'Forbidden',
-          message: 'Only teachers can update lessons',
+          message: 'Only teachers and admins can update lessons',
         });
       }
 
@@ -451,10 +451,10 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userId = (request as any).user.userId;
       const userRole = (request as any).user.role;
 
-      if (userRole !== 'teacher') {
+      if (userRole !== 'TEACHER' && userRole !== 'ADMIN') {
         return reply.code(403).send({
           error: 'Forbidden',
-          message: 'Only teachers can delete lessons',
+          message: 'Only teachers and admins can delete lessons',
         });
       }
 

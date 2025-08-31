@@ -463,7 +463,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                             <li>Your profile and account information</li>
                             <li>All game predictions and scores</li>
                             <li>Class memberships and progress</li>
-                            {user?.role === 'teacher' && (
+                            {(user?.role === 'TEACHER' || user?.role === 'ADMIN') && (
                               <>
                                 <li>All classes you've created</li>
                                 <li>All lessons you've uploaded</li>

@@ -75,8 +75,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     try {
       const { predictionId } = request.params as { predictionId: string };
       
-      // Only allow teachers/admins to trigger manual scoring
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to trigger manual scoring
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -100,8 +100,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     try {
       const { gameId } = request.params as { gameId: string };
       
-      // Only allow teachers/admins to trigger manual scoring
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to trigger manual scoring
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -123,8 +123,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     preHandler: fastify.ensureAuth(),
   }, async (request, reply) => {
     try {
-      // Only allow teachers/admins to adjust points
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to adjust points
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -163,8 +163,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     preHandler: fastify.ensureAuth(),
   }, async (request, reply) => {
     try {
-      // Only allow teachers/admins to trigger batch processing
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to trigger batch processing
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -182,8 +182,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     preHandler: fastify.ensureAuth(),
   }, async (request, reply) => {
     try {
-      // Only allow teachers/admins to manually complete games
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to manually complete games
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -209,8 +209,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     preHandler: fastify.ensureAuth(),
   }, async (request, reply) => {
     try {
-      // Only allow teachers/admins to simulate completions
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to simulate completions
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       
@@ -233,8 +233,8 @@ export default async function pointsRoutes(fastify: FastifyInstance) {
     preHandler: fastify.ensureAuth(),
   }, async (request, reply) => {
     try {
-      // Only allow teachers/admins to view this
-      if (request.user.role !== 'teacher') {
+      // Only allow admins to view this
+      if (request.user.role !== 'ADMIN') {
         return reply.status(403).send({ error: 'Insufficient permissions' });
       }
       

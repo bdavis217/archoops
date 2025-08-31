@@ -12,7 +12,7 @@ export * from './schemas/points';
 export const UserSchema = z.object({
 	id: z.string(),
 	email: z.string().email(),
-	role: z.enum(['Teacher', 'Student']),
+	role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']),
 	createdAt: z.string().datetime().optional(),
 	updatedAt: z.string().datetime().optional(),
 });

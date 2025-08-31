@@ -12,7 +12,7 @@ model User {
   email        String   @unique
   passwordHash String
   displayName  String
-  role         String   // "teacher" or "student"
+  role         String   @default("STUDENT") // "STUDENT", "TEACHER", or "ADMIN"
   resetToken   String?  // Password reset token
   resetTokenExpires DateTime? // Token expiration
   createdAt    DateTime @default(now())
@@ -168,3 +168,5 @@ model UserPreferences {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
+
+

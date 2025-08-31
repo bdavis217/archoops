@@ -19,7 +19,7 @@ export default function Classes() {
   const { data: classes, isLoading } = useQuery({
     queryKey: ['classes', user?.role],
     queryFn: async (): Promise<ClassSummary[]> => {
-      const endpoint = user?.role === 'teacher' ? '/api/teacher/classes' : '/api/student/classes';
+      const endpoint = (user?.role === 'TEACHER' || user?.role === 'ADMIN') ? '/api/teacher/classes' : '/api/student/classes';
       const response = await fetch(endpoint, { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch classes');
@@ -179,7 +179,7 @@ export default function Classes() {
                 My Classes
               </h1>
               <p className="text-neutral-600">
-                {user.role === 'teacher' 
+                {(user.role === 'TEACHER' || user.role === 'ADMIN')
                   ? 'Manage your classes and track student progress'
                   : 'View and manage your enrolled classes'
                 }
@@ -212,7 +212,7 @@ export default function Classes() {
         )}
 
         {/* Quick Stats for Teachers */}
-        {user.role === 'teacher' && classes && classes.length > 0 && (
+        {(user.role === 'TEACHER' || user.role === 'ADMIN') && classes && classes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
               <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -254,16 +254,16 @@ export default function Classes() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div>
                 <h2 className="text-xl font-semibold text-neutral-900 font-display">
-                  {user.role === 'teacher' ? 'Your Classes' : 'Enrolled Classes'}
+                  {(user.role === 'TEACHER' || user.role === 'ADMIN') ? 'Your Classes' : 'Enrolled Classes'}
                 </h2>
                 <p className="text-sm text-neutral-500 mt-1">
-                  {user.role === 'teacher' 
+                  {(user.role === 'TEACHER' || user.role === 'ADMIN')
                     ? 'Create and manage your classes'
                     : 'Join classes and manage your enrollments'
                   }
                 </p>
               </div>
-              {user.role === 'teacher' ? (
+              {(user.role === 'TEACHER' || user.role === 'ADMIN') ? (
                 <button
                   onClick={() => setShowCreateClass(true)}
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md group"
@@ -304,10 +304,10 @@ export default function Classes() {
                   >
                     <ClassCard
                       classData={cls}
-                      isTeacher={user.role === 'teacher'}
-                      onDelete={user.role === 'teacher' ? (classId) => deleteClassMutation.mutate(classId) : undefined}
-                      onRotateCode={user.role === 'teacher' ? (classId) => rotateCodeMutation.mutate(classId) : undefined}
-                      onLeave={user.role === 'student' ? (classId) => leaveClassMutation.mutate(classId) : undefined}
+                      isTeacher={user.role === 'TEACHER' || user.role === 'ADMIN'}
+                      onDelete={(user.role === 'TEACHER' || user.role === 'ADMIN') ? (classId) => deleteClassMutation.mutate(classId) : undefined}
+                      onRotateCode={(user.role === 'TEACHER' || user.role === 'ADMIN') ? (classId) => rotateCodeMutation.mutate(classId) : undefined}
+                      onLeave={user.role === 'STUDENT' ? (classId) => leaveClassMutation.mutate(classId) : undefined}
                     />
                   </div>
                 ))}
@@ -320,16 +320,16 @@ export default function Classes() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-neutral-900 mb-2">
-                  {user.role === 'teacher' ? 'No classes created yet' : 'No classes joined yet'}
+                  {(user.role === 'TEACHER' || user.role === 'ADMIN') ? 'No classes created yet' : 'No classes joined yet'}
                 </h3>
                 <p className="text-neutral-500 max-w-md mx-auto text-balance mb-6">
-                  {user.role === 'teacher' 
+                  {(user.role === 'TEACHER' || user.role === 'ADMIN')
                     ? "Create your first class to start engaging students with sports analytics and data science!"
                     : "Join a class to start making predictions, learning about data science, and competing with classmates!"
                   }
                 </p>
                 <div>
-                  {user.role === 'teacher' ? (
+                  {(user.role === 'TEACHER' || user.role === 'ADMIN') ? (
                     <button
                       onClick={() => setShowCreateClass(true)}
                       className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl transition-all duration-200"

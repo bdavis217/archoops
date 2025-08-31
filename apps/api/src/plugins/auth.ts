@@ -6,14 +6,14 @@ import { config } from '@archoops/config';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { userId: string; role: 'teacher' | 'student' };
-    user: { userId: string; role: 'teacher' | 'student' };
+    payload: { userId: string; role: 'STUDENT' | 'TEACHER' | 'ADMIN' };
+    user: { userId: string; role: 'STUDENT' | 'TEACHER' | 'ADMIN' };
   }
 }
 
 declare module 'fastify' {
   interface FastifyInstance {
-    ensureAuth: (role?: 'teacher' | 'student') => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    ensureAuth: (role?: 'STUDENT' | 'TEACHER' | 'ADMIN') => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 
@@ -30,7 +30,7 @@ async function authPlugin(fastify: FastifyInstance) {
   // Note: Cookie plugin is registered in the main server file
 
   // Auth decorator
-  fastify.decorate('ensureAuth', (requiredRole?: 'teacher' | 'student') => {
+  fastify.decorate('ensureAuth', (requiredRole?: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         await request.jwtVerify();

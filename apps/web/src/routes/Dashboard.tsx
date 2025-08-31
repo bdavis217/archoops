@@ -105,7 +105,7 @@ export default function Dashboard() {
                 setShowLessonPlayer(false);
                 setSelectedLesson(null);
               }}
-              isStudent={user.role === 'student'}
+              isStudent={user.role === 'STUDENT'}
             />
           </div>
         </div>

@@ -36,8 +36,8 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         joinDate: user.createdAt.toISOString(),
       };
 
-      // Only calculate teacher stats for teachers
-      if (user.role === 'teacher') {
+      // Only calculate teacher stats for teachers and admins
+      if (user.role === 'TEACHER' || user.role === 'ADMIN') {
         // Get total classes created by this teacher
         const totalClasses = await prisma.class.count({
           where: { teacherId: userId }
@@ -411,8 +411,8 @@ export default async function profileRoutes(fastify: FastifyInstance) {
           where: { userId }
         });
 
-        // 6. If teacher, handle classes and lessons they created
-        if (user.role === 'teacher') {
+        // 6. If teacher or admin, handle classes and lessons they created
+        if (user.role === 'TEACHER' || user.role === 'ADMIN') {
           // Get all classes created by this teacher
           const teacherClasses = await tx.class.findMany({
             where: { teacherId: userId },

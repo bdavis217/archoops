@@ -20,7 +20,7 @@ export function SignupForm({ onSubmit, isLoading }: SignupFormProps) {
   } = useForm<SignupInput>({
     resolver: zodResolver(SignupInputSchema),
     defaultValues: {
-      role: 'student',
+      role: 'STUDENT',
     },
   });
 
@@ -116,19 +116,19 @@ export function SignupForm({ onSubmit, isLoading }: SignupFormProps) {
           <legend className="block text-sm font-medium text-neutral-700 mb-3">I am a...</legend>
           <div className="grid grid-cols-2 gap-3">
             <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-              role === 'student' 
+              role === 'STUDENT' 
                 ? 'border-success-300 bg-success-50 text-success-700' 
                 : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
             }`}>
               <input
                 {...register('role')}
                 type="radio"
-                value="student"
+                value="STUDENT"
                 className="sr-only"
               />
               <div className="flex flex-col items-center text-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                  role === 'student' ? 'bg-success-200' : 'bg-neutral-200'
+                  role === 'STUDENT' ? 'bg-success-200' : 'bg-neutral-200'
                 }`}>
                   🎓
                 </div>
@@ -143,19 +143,19 @@ export function SignupForm({ onSubmit, isLoading }: SignupFormProps) {
               )}
             </label>
             <label className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-              role === 'teacher' 
+              role === 'TEACHER' 
                 ? 'border-secondary-300 bg-secondary-50 text-secondary-700' 
                 : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
             }`}>
               <input
                 {...register('role')}
                 type="radio"
-                value="teacher"
+                value="TEACHER"
                 className="sr-only"
               />
               <div className="flex flex-col items-center text-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                  role === 'teacher' ? 'bg-secondary-200' : 'bg-neutral-200'
+                  role === 'TEACHER' ? 'bg-secondary-200' : 'bg-neutral-200'
                 }`}>
                   👩‍🏫
                 </div>

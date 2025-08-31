@@ -74,6 +74,28 @@ export function Header() {
               >
                 🏫 Classes
               </button>
+              <button
+                onClick={() => navigate('/points')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/points'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                }`}
+              >
+                ⭐ Points
+              </button>
+              {user.role === 'ADMIN' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    location.pathname === '/admin'
+                      ? 'bg-red-100 text-red-700'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                  }`}
+                >
+                  ⚙️ Admin
+                </button>
+              )}
               {/*
               <button
                 onClick={() => navigate('/games')}
@@ -105,28 +127,6 @@ export function Header() {
               >
                 🏆 Leaderboard
               </button>
-              <button
-                onClick={() => navigate('/points')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === '/points'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-                }`}
-              >
-                ⭐ Points
-              </button>
-              {user.role === 'teacher' && (
-                <button
-                  onClick={() => navigate('/admin')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === '/admin'
-                      ? 'bg-red-100 text-red-700'
-                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-                  }`}
-                >
-                  ⚙️ Admin
-                </button>
-              )}
               */}
             </nav>
             
@@ -154,7 +154,8 @@ export function Header() {
                 <p className="text-neutral-900 font-medium text-sm">{user.displayName}</p>
                 <div className="flex items-center space-x-1">
                   <span className={`inline-block w-2 h-2 rounded-full ${
-                    user.role === 'teacher' ? 'bg-secondary-400' : 'bg-success-400'
+                    user.role === 'ADMIN' ? 'bg-red-400' : 
+                    user.role === 'TEACHER' ? 'bg-secondary-400' : 'bg-success-400'
                   }`} />
                   <p className="text-neutral-500 text-xs capitalize">{user.role}</p>
                 </div>
@@ -179,7 +180,8 @@ export function Header() {
                   <p className="text-sm font-medium text-neutral-900">{user.displayName}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <span className={`inline-block w-2 h-2 rounded-full ${
-                      user.role === 'teacher' ? 'bg-secondary-400' : 'bg-success-400'
+                      user.role === 'ADMIN' ? 'bg-red-400' : 
+                      user.role === 'TEACHER' ? 'bg-secondary-400' : 'bg-success-400'
                     }`} />
                     <p className="text-xs text-neutral-500 capitalize">{user.role}</p>
                   </div>
@@ -187,6 +189,20 @@ export function Header() {
                 
                 {/* Menu items */}
                 <div className="py-1">
+                  {user.role === 'ADMIN' && (
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate('/admin');
+                    }}
+                    className="flex items-center w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Admin Console
+                  </button>
+                  )}
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);
