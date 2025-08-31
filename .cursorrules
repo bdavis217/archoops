@@ -184,6 +184,26 @@ accessibility:
   - "Test with screen readers"
   - "Support reduced motion preferences"
 
+# Database Management
+database_management:
+  correct_database:
+    - "CORRECT DATABASE: apps/api/prisma/dev.db"
+    - "This is the ONLY database file that the API server uses"
+    - "DATABASE_URL should be: file:./apps/api/prisma/dev.db"
+    - "All database operations should target this file"
+  
+  wrong_databases:
+    - "apps/api/prisma/prisma/dev.db_do_not_use - WRONG (nested too deep)"
+    - "apps/api/prisma/apps/api/prisma/dev.db_do_not_use - WRONG (nested too deep)"
+    - "These files are old copies and should NOT be used"
+    - "They may contain outdated data or different schemas"
+  
+  database_operations:
+    - "Always use DATABASE_URL='file:./apps/api/prisma/dev.db' for scripts"
+    - "When running database scripts, ensure you're in the apps/api directory"
+    - "Use cd apps/api && DATABASE_URL='file:./prisma/dev.db' for consistency"
+    - "Never modify the _do_not_use database files"
+
 # Environment Configuration
 environments:
   development:
