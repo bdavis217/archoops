@@ -16,7 +16,7 @@ export function LessonCard({
   onEdit, 
   onDelete
 }: LessonCardProps) {
-  const progressPercent = (lesson.progress || 0) * 100;
+  const progressPercent = lesson.completed ? 100 : Math.round((lesson.progress || 0) * 100);
 
   return (
     <div className="card hover:shadow-lg transition-shadow duration-200">

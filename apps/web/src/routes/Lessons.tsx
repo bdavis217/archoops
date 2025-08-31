@@ -129,8 +129,23 @@ export default function Lessons() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (serverProgress) => {
       queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      setPlayingLesson((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          progress: {
+            id: prev.progress?.id ?? serverProgress.id,
+            userId: prev.progress?.userId ?? serverProgress.userId,
+            lessonId: prev.progress?.lessonId ?? serverProgress.lessonId,
+            progress: serverProgress.progress,
+            lastCheckpoint: serverProgress.lastCheckpoint ?? prev.progress?.lastCheckpoint,
+            completed: serverProgress.completed,
+            updatedAt: serverProgress.updatedAt,
+          },
+        } as LessonWithProgress;
+      });
     },
   });
 
@@ -169,6 +184,24 @@ export default function Lessons() {
 
   const handleProgressUpdate = async (progress: UpdateLessonProgress) => {
     if (!playingLesson) return;
+    // Optimistic UI update so the progress bar reflects immediately
+    setPlayingLesson((prev) => {
+      if (!prev) return prev;
+      const nextProgressValue = Math.max(prev.progress?.progress ?? 0, progress.progress);
+      const nextCompleted = progress.progress >= 1 || prev.progress?.completed === true;
+      return {
+        ...prev,
+        progress: {
+          id: prev.progress?.id ?? `${prev.id}-temp`,
+          userId: prev.progress?.userId ?? user?.id ?? 'me',
+          lessonId: prev.id,
+          progress: nextProgressValue,
+          lastCheckpoint: progress.lastCheckpoint ?? prev.progress?.lastCheckpoint,
+          completed: nextCompleted,
+          updatedAt: new Date().toISOString(),
+        },
+      } as LessonWithProgress;
+    });
     updateProgressMutation.mutate({ lessonId: playingLesson.id, progress });
   };
 
@@ -267,7 +300,6 @@ export default function Lessons() {
                     }
                   } : undefined}
                   onDelete={isTeacher ? handleDeleteLesson : undefined}
-                  onUploadVideo={undefined}
                 />
               </div>
             ))}

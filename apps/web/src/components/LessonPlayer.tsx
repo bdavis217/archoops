@@ -15,6 +15,7 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
+  const isGenially = Boolean(lesson.embedCode && /genially\.com|view\.genially\.com/i.test(lesson.embedCode));
 
   const progress = lesson.progress?.progress || 0;
   const completed = lesson.progress?.completed || false;
@@ -32,8 +33,9 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
           startTimeRef.current = Date.now();
 
           // Update progress based on time spent (rough estimation)
-          // Assume 5 minutes is 100% completion for interactive content
-          const estimatedProgress = Math.min((timeSpent + elapsed) / (5 * 60 * 1000), 1);
+          // Genially tends to be shorter; estimate 2 minutes for Genially, 5 minutes otherwise
+          const estimatedTotalMs = isGenially ? (2 * 60 * 1000) : (5 * 60 * 1000);
+          const estimatedProgress = Math.min((timeSpent + elapsed) / estimatedTotalMs, 1);
           
           if (estimatedProgress > progress) {
             onProgressUpdate?.({
@@ -42,7 +44,7 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
             });
           }
         }
-      }, 30000); // Update every 30 seconds
+      }, 10000); // Update every 10 seconds for quicker feedback
     }
 
     return () => {
@@ -51,7 +53,25 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
         intervalRef.current = undefined;
       }
     };
-  }, [hasStarted, isStudent, onProgressUpdate, progress, timeSpent]);
+  }, [hasStarted, isStudent, onProgressUpdate, progress, timeSpent, isGenially]);
+
+  // Listen for completion events from Genially via postMessage if available
+  useEffect(() => {
+    if (!isStudent || !isGenially) return;
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const origin = event.origin || '';
+        if (!/genially\.com|view\.genially\.com/i.test(origin)) return;
+        const data = event.data;
+        const asString = typeof data === 'string' ? data : JSON.stringify(data || '');
+        if (/finish|finished|complete|completed|end|ended/i.test(asString)) {
+          onProgressUpdate?.({ progress: 1, lastCheckpoint: '100' });
+        }
+      } catch {}
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isStudent, isGenially, onProgressUpdate]);
 
   const hideControlsAfterDelay = () => {
     if (controlsTimeoutRef.current) {
@@ -93,7 +113,7 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
     return embedCode;
   };
 
-  const overallProgress = progress * 100;
+  const overallProgress = completed ? 100 : Math.round(progress * 100);
 
   return (
     <>
@@ -263,7 +283,7 @@ export function LessonPlayer({ lesson, onProgressUpdate, onClose, isStudent = fa
             </div>
 
             <div className="flex items-center space-x-4">
-              {isStudent && !completed && overallProgress >= 80 && (
+              {isStudent && !completed && (
                 <button
                   onClick={handleMarkComplete}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"

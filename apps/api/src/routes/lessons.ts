@@ -172,26 +172,24 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
       const userId = (request as any).user.userId;
       const userRole = (request as any).user.role;
 
-      if (userRole === 'teacher') {
-        // Teachers see all lessons they created with progress data
+      if (userRole === 'TEACHER' || userRole === 'ADMIN') {
+        // Teachers/Admins see all lessons they created (no student progress in summary response)
         const lessons = await prisma.lesson.findMany({
           where: { authorId: userId },
           orderBy: { createdAt: 'desc' },
-          include: {
-            progresses: {
-              select: {
-                completed: true,
-              }
-            }
-          }
         });
 
-        const lessonSummaries = lessons.map(lesson => ({
-          id: lesson.id,
-          title: lesson.title,
-          createdAt: lesson.createdAt.toISOString(),
-          progresses: lesson.progresses || []
-        }));
+        const lessonSummaries = lessons.map(lesson => (
+          LessonSummarySchema.parse({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.content,
+            videoUrl: lesson.videoUrl || null,
+            embedCode: lesson.embedCode || null,
+            createdBy: lesson.authorId,
+            createdAt: lesson.createdAt.toISOString(),
+          })
+        ));
 
         return reply.send(lessonSummaries);
       } else {
@@ -258,7 +256,7 @@ export default async function lessonRoutes(fastify: FastifyInstance) {
         });
       }
 
-      if (userRole === 'student') {
+      if (userRole === 'STUDENT') {
         const progress = lesson.progresses?.[0];
         const lessonWithProgress = LessonWithProgressSchema.parse({
           id: lesson.id,
