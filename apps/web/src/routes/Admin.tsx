@@ -109,12 +109,23 @@ const Admin: React.FC = () => {
         method: 'POST',
         credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to process completed games');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || `Failed to process completed games (${response.status})`);
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Process completed games success:', data);
       queryClient.invalidateQueries({ queryKey: ['games'] });
       queryClient.invalidateQueries({ queryKey: ['admin'] });
+      queryClient.invalidateQueries({ queryKey: ['predictions'] });
+      queryClient.invalidateQueries({ queryKey: ['points'] });
+      alert(data.message || 'Successfully processed all completed games!');
+    },
+    onError: (error) => {
+      console.error('Process completed games error:', error);
+      alert(`Error: ${error.message}`);
     },
   });
 

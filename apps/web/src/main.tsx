@@ -120,7 +120,7 @@ const router = createBrowserRouter([
   { 
     path: '/admin', 
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute requiredRole="ADMIN">
         <React.Suspense fallback={<LoadingScreen message="Loading admin..." />}>
           <Admin />
         </React.Suspense>
